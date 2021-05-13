@@ -27,4 +27,18 @@ public class Manager : MonoBehaviour
         }
     }
     #endregion
+
+    public void SpawnPrefab(GameObject prefab)
+    {
+        Ray ray;
+        RaycastHit hit;
+        ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out hit, 100.0f))
+        {
+            if (hit.collider.CompareTag("Floor"))
+            {
+                    Instantiate(prefab, hit.point, Quaternion.identity);
+            }
+        }
+    }
 }

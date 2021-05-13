@@ -10,7 +10,9 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 	Transform startParent;
 	private CanvasGroup canvasGroup;
 
-    private void Awake()
+	public GameObject prefab;
+
+	private void Awake()
     {
 		canvasGroup = GetComponent<CanvasGroup>();
 	}
@@ -45,6 +47,8 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 		canvasGroup.blocksRaycasts = true;
 		canvasGroup.alpha = 1f;
 		transform.position = startPosition;
+
+		Manager.Instance.SpawnPrefab(prefab);
 
 		//if (transform.parent == startParent)
 		//{
