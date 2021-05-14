@@ -48,7 +48,13 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 		canvasGroup.alpha = 1f;
 		transform.position = startPosition;
 
-		Manager.Instance.SpawnPrefab(prefab);
+		// Check if the mouse was clicked over a UI element
+		if (!EventSystem.current.IsPointerOverGameObject())
+		{
+			Manager.Instance.SpawnPrefab(prefab);
+		}
+
+		//Manager.Instance.SpawnPrefab(prefab);
 
 		//if (transform.parent == startParent)
 		//{
