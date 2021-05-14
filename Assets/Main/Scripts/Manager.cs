@@ -44,13 +44,6 @@ public class Manager : MonoBehaviour
 
     public void SwitchShowWindow(GameObject window)
     {
-        if (window.activeInHierarchy)
-        {
-            window.SetActive(false);
-        }
-        else
-        {
-            window.SetActive(true);
-        }
+        window.SetActive(!window.activeInHierarchy);
     }
 }

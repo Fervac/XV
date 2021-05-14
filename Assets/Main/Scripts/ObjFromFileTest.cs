@@ -1,4 +1,5 @@
 ﻿using Dummiesman;
+using System.Collections;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,6 +9,11 @@ public class ObjFromFileTest : MonoBehaviour
     string objPath = string.Empty;
     string error = string.Empty;
     GameObject loadedObject;
+
+    public Text errorText;
+    public Transform content;
+    public GameObject contentPrefab;
+    public Sprite notFound;
 
     //void OnGUI() {
     //    objPath = GUI.TextField(new Rect(100, 100, 256, 32), objPath);
@@ -48,14 +54,33 @@ public class ObjFromFileTest : MonoBehaviour
             if (loadedObject != null)
                 Destroy(loadedObject);
             loadedObject = new OBJLoader().Load(objPath);
+
+            AddToScrollview(loadedObject);
+
             error = string.Empty;
         }
 
         if (!string.IsNullOrWhiteSpace(error))
         {
-            GUI.color = Color.red;
-            GUI.Box(new Rect(0, 64, 256 + 64, 32), error);
-            GUI.color = Color.white;
+            errorText.color = Color.red;
+            StartCoroutine(ErrorCoroutine());
         }
+    }
+
+    IEnumerator ErrorCoroutine()
+    {
+        errorText.text = error;
+
+        yield return new WaitForSeconds(2);
+
+        errorText.text = "";
+    }
+
+    public void AddToScrollview(GameObject prefab)
+    {
+        GameObject tmp = Instantiate(contentPrefab);
+        tmp.transform.SetParent(content);
+        tmp.GetComponent<DragHandler>().prefab = prefab;
+        tmp.GetComponent<Image>().sprite = notFound;
     }
 }
