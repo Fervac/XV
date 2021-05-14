@@ -28,6 +28,22 @@ public class Manager : MonoBehaviour
     }
     #endregion
 
+    List<GameObject> loadedObjects;
+
+    private void Start()
+    {
+        loadedObjects = new List<GameObject>();
+    }
+
+    public GameObject AddToLoadedList(GameObject prefab)
+    {
+        loadedObjects.Add(prefab);
+
+        GameObject tmp = loadedObjects[loadedObjects.Count - 1];
+
+        return tmp;
+    }
+
     public void SpawnPrefab(GameObject prefab)
     {
         Ray ray;

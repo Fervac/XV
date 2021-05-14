@@ -57,11 +57,13 @@ public class ObjFromFileTest : MonoBehaviour
         }
         else
         {
-            if (loadedObject != null)
-                Destroy(loadedObject);
+            //if (loadedObject != null)
+            //    Destroy(loadedObject);
             loadedObject = new OBJLoader().Load(objPath);
 
-            AddToScrollview(loadedObject);
+            GameObject tmp = Manager.Instance.AddToLoadedList(loadedObject);
+
+            AddToScrollview(tmp);
 
             error = string.Empty;
         }
