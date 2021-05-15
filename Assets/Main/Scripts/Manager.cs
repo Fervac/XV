@@ -30,6 +30,9 @@ public class Manager : MonoBehaviour
 
     List<GameObject> loadedObjects;
 
+    public GameObject PopupPrefab;
+    public GameObject GlobalCanvas;
+
     private void Start()
     {
         loadedObjects = new List<GameObject>();
@@ -53,7 +56,9 @@ public class Manager : MonoBehaviour
         {
             if (hit.collider.CompareTag("Floor"))
             {
-                    Instantiate(prefab, hit.point, Quaternion.identity);
+                GameObject tmp = Instantiate(prefab, hit.point, Quaternion.identity);
+                tmp.AddComponent<PopupObjectMenu>();
+                tmp.AddComponent<BoxCollider>();
             }
         }
     }
