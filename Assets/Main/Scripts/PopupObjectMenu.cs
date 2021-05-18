@@ -8,7 +8,8 @@ using UnityEngine.UI;
 public class PopupObjectMenu : MonoBehaviour
 {
     private GameObject EmptyObj;
-    private Button destroyButton;
+    private GameObject destroyButton;
+    private GameObject rotateButton;
 
     private void Awake()
     {
@@ -19,12 +20,18 @@ public class PopupObjectMenu : MonoBehaviour
         EmptyObj.AddComponent<ClampPopup>();
         EmptyObj.GetComponent<ClampPopup>().CreatePopup();
 
-        destroyButton = EmptyObj.GetComponent<ClampPopup>().popup.GetComponentInChildren<Button>();
+
+        //destroyButton = EmptyObj.GetComponent<ClampPopup>().popup.GetComponentInChildren<Button>();
+
+        destroyButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "DestroyButton").gameObject;
+        rotateButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "RotateButton").gameObject;
     }
+
 
     private void Start()
     {
-        destroyButton.onClick.AddListener(() => actionToObject());
+        destroyButton.GetComponent<Button>().onClick.AddListener(() => DestroyObject());
+        rotateButton.GetComponent<Button>().onClick.AddListener(() => RotateObject());
     }
 
     private void OnMouseDown()
@@ -35,14 +42,17 @@ public class PopupObjectMenu : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
+    private void DestroyObject()
     {
-        destroyButton.onClick.RemoveListener(() => actionToObject());
-    }
+        destroyButton.GetComponent<Button>().onClick.RemoveListener(() => DestroyObject());
+        rotateButton.GetComponent<Button>().onClick.RemoveListener(() => RotateObject());
 
-    void actionToObject()
-    {
         Destroy(EmptyObj.GetComponent<ClampPopup>().popup);
         Destroy(this.gameObject);
+    }
+
+    private void RotateObject()
+    {
+        gameObject.transform.Rotate(0, 90, 0);
     }
 }
