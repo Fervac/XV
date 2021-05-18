@@ -58,6 +58,7 @@ public class Manager : MonoBehaviour
             {
                 GameObject tmp = Instantiate(prefab, hit.point, Quaternion.identity);
                 tmp.AddComponent<PopupObjectMenu>();
+                tmp.AddComponent<ModelManager>();
                 tmp.AddComponent<BoxCollider>();
             }
         }
