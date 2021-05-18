@@ -33,6 +33,8 @@ public class Manager : MonoBehaviour
     public GameObject PopupPrefab;
     public GameObject GlobalCanvas;
 
+    public Material GhostMat;
+
     private void Start()
     {
         loadedObjects = new List<GameObject>();

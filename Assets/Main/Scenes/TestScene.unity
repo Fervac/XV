@@ -2141,6 +2141,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PopupPrefab: {fileID: 5159003565746979662, guid: 12762a14704b9ef4082ef4b5bb17da00, type: 3}
   GlobalCanvas: {fileID: 653365445}
+  GhostMat: {fileID: 2100000, guid: d989460c8b2a71d41b87f76fd1ee7a8e, type: 2}
 --- !u!1 &653365445
 GameObject:
   m_ObjectHideFlags: 0

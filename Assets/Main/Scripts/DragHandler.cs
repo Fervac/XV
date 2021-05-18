@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,10 +8,10 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 {
 	public static GameObject itemBeingDragged;
 	Vector3 startPosition;
-	Transform startParent;
 	private CanvasGroup canvasGroup;
 
 	public GameObject prefab;
+	private GameObject ghostObject;
 
 	private void Awake()
     {
@@ -23,18 +24,43 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 	{
 		itemBeingDragged = gameObject;
 		startPosition = transform.position;
-		startParent = transform.parent;
 		canvasGroup.blocksRaycasts = false;
 		canvasGroup.alpha = .6f;
+
+		GhostMode();
 	}
 
-	#endregion
+    private void GhostMode()
+    {
+		ghostObject = Instantiate(prefab, Camera.main.ScreenToWorldPoint(transform.position), Quaternion.identity);
+		//ghostObject.GetComponent<MeshRenderer>().material = Manager.Instance.GhostMat;
+	}
 
-	#region IDragHandler implementation
+    private void Update()
+    {
+        if (ghostObject)
+        {
+			Ray ray;
+			RaycastHit hit;
+			ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			if (Physics.Raycast(ray, out hit, 100.0f))
+			{
+				if (hit.collider.CompareTag("Floor"))
+				{
+					ghostObject.transform.position = hit.point;
+				}
+			}
+		}
+    }
 
-	public void OnDrag(PointerEventData eventData)
+    #endregion
+
+    #region IDragHandler implementation
+
+    public void OnDrag(PointerEventData eventData)
 	{
 		transform.position = eventData.position;
+		//ghostObject.transform.position = Camera.main.ScreenToWorldPoint(eventData.position);
 	}
 
 	#endregion
@@ -48,26 +74,13 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 		canvasGroup.alpha = 1f;
 		transform.position = startPosition;
 
+		Destroy(ghostObject);
+
 		// Check if the mouse was clicked over a UI element
 		if (!EventSystem.current.IsPointerOverGameObject())
 		{
 			Manager.Instance.SpawnPrefab(prefab);
 		}
-
-		//Manager.Instance.SpawnPrefab(prefab);
-
-		//if (transform.parent == startParent)
-		//{
-		//	transform.position = startPosition;
-		//}
-		//else
-		//{
-		//	GameObject tmp = Instantiate(this.gameObject);
-		//	tmp.transform.position = startPosition;
-		//	tmp.transform.SetParent(startParent);
-
-		//	canvasGroup.blocksRaycasts = false;
-		//}
 	}
 
 	#endregion

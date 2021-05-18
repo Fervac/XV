@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class PopupObjectMenu : MonoBehaviour
@@ -28,7 +29,10 @@ public class PopupObjectMenu : MonoBehaviour
 
     private void OnMouseDown()
     {
-        Manager.Instance.SwitchShowWindow(GetComponentInChildren<ClampPopup>().popup);
+        if (!EventSystem.current.IsPointerOverGameObject())
+        {
+            Manager.Instance.SwitchShowWindow(GetComponentInChildren<ClampPopup>().popup);
+        }
     }
 
     private void OnDestroy()
