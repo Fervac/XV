@@ -19,6 +19,7 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
     private GameObject limitR;
 
     private Action _event;
+    private ActionActor actor;
 
     void Start()
     {
@@ -26,7 +27,7 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         limitR = this.transform.parent.Find("Limits/RL").gameObject;
     }
 
-    public TimelineEventButton(int _type, float _start, float _end, float _duration, Action action, string indi = "A")
+    public TimelineEventButton(int _type, float _start, float _end, float _duration, Action action, ActionActor actor, string indi = "A")
     {
         this.type = _type;
 
@@ -37,9 +38,12 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         indicator.text = indi;
 
         this._event = action;
+        this.actor = actor;
+
+        UpdatePositionByTime();
     }
 
-    public void SetProperties(int _type, float _start, float _end, float _duration, Action action, string indi = "A")
+    public void SetProperties(int _type, float _start, float _end, float _duration, Action action, ActionActor actor, string indi = "A")
     {
         this.type = _type;
 
@@ -50,8 +54,9 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         indicator.text = indi;
 
         this._event = action;
+        this.actor = actor;
 
-        // Should modify position in accordance of _start
+        UpdatePositionByTime();
     }
 
     public void Dispose()
@@ -72,16 +77,52 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
 
     private Vector3 position;
 
-    private void UpdateTimeParameters()
+    private void UpdatePositionByTime()
+    {
+        if (!limitL || !limitR)
+        {
+            limitL = this.transform.parent.Find("Limits/LL").gameObject;
+            limitR = this.transform.parent.Find("Limits/RL").gameObject;
+        }
+        double L = System.Math.Round(limitL.transform.position.x, 2) - System.Math.Round(limitL.transform.position.x, 2);
+        double R = System.Math.Round(limitR.transform.position.x, 2) - System.Math.Round(limitL.transform.position.x, 2);
+
+        float width = this.gameObject.GetComponent<RectTransform>().sizeDelta.x;
+        //double startPos = (this.start / Manager.Instance.GetDuration()) * R;
+        double startPos = width * start;
+        this.transform.position = new Vector3((float)startPos + this.transform.position.x, this.transform.position.y, this.transform.position.z);
+    }
+
+    private bool UpdateTimeParameters()
     {
         double cur = System.Math.Round(transform.position.x, 2) - System.Math.Round(limitL.transform.position.x, 2);
 
         double L = System.Math.Round(limitL.transform.position.x, 2) - System.Math.Round(limitL.transform.position.x, 2);
         double R = System.Math.Round(limitR.transform.position.x, 2) - System.Math.Round(limitL.transform.position.x, 2);
 
+        // Round the cur value and fixing the position (else we might have several very little variation for the same cur value
+        cur = System.Math.Round(cur);
+        transform.position = new Vector3((float)(cur + System.Math.Round(limitL.transform.position.x, 2)), transform.position.y, transform.position.z);
+
         double startTime = (cur / R) * Manager.Instance.GetDuration();
+        startTime = System.Math.Round(startTime, 2);
+
+        // Check if position is correct (no overlap)
+        /*foreach (Action action in actor.actions)
+        {
+            if (action == _event)
+                continue;
+            if (startTime >= action.start && startTime < action.end)
+                return false;
+            if (startTime + duration <= action.end && startTime + duration >= action.start)
+                return false;
+        }*/
+
+        if (this.start == (float)startTime)
+            return false;
         this.start = (float)startTime;
-        this.end = (float)(end + startTime);
+        this.end = (float)(startTime + duration);
+        return true;
     }
 
     private GameObject toolTip = null;
@@ -104,19 +145,25 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
     /*
      * Drag the event.
      * Should also modify this.start and this.end variable to match timeline
+     * ------------
+     * Should check for overlap and forbid overlap
+     * To check for overlap, we need to check if _event.start is inferior to other action.end and that _event.
      */
     public void OnDrag(PointerEventData data)
     {
         float width = this.gameObject.GetComponent<RectTransform>().sizeDelta.x;
         Vector3 np = new Vector3(data.position.x, transform.position.y, 0);
+        Vector3 save = transform.position;
         if (np.x <= limitL.transform.position.x)
             np.x = limitL.transform.position.x;
         else if (np.x >= limitR.transform.position.x - width)
             np.x = limitR.transform.position.x - width;
 
         transform.position = np;
-        // Update time parameters
-        UpdateTimeParameters();
+        // Update time parameters and check overlap
+        if (!UpdateTimeParameters())
+            transform.position = save;
+
         // Set toolTip position and text
         toolTip.transform.position = new Vector3(this.transform.position.x, this.transform.position.y + this.gameObject.GetComponent<RectTransform>().sizeDelta.y, this.transform.position.z);
         toolTip.GetComponentInChildren<Text>().text = Timeline.timeToString(this.start);
@@ -126,11 +173,21 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
     {
         float width = this.gameObject.GetComponent<RectTransform>().sizeDelta.x;
         Vector3 np = new Vector3(eventData.position.x, transform.position.y, 0);
+        Vector3 save = transform.position;
         if (np.x <= limitL.transform.position.x)
             np.x = limitL.transform.position.x;
         else if (np.x >= limitR.transform.position.x - width)
             np.x = limitR.transform.position.x - width;
+
         transform.position = np;
+        // Update time parameters and check overlap
+        if (!UpdateTimeParameters())
+            transform.position = save;
+
+        // Update action and sort actions list by start time
+        _event.start = start;
+        _event.end = end;
+        actor.SortActions();
 
         // Disable startTime tooltip
         GameObject toolTip = Manager.Instance.GetEventTooltip();

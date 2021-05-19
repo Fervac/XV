@@ -85,6 +85,11 @@ public class Action
         }
         return name;
     }
+
+    public static int SortByStartTime(Action a1, Action a2)
+    {
+        return a1.start.CompareTo(a2.start);
+    }
 }
 
 public class ActionActor
@@ -112,6 +117,22 @@ public class ActionActor
     {
         actions.Remove(action);
         actionCount -= 1;
+    }
+
+    public void SortActions()
+    {
+        this.actions.Sort(Action.SortByStartTime);
+    }
+
+    public void UpdateAction(Action action)
+    {
+        int index = actions.FindIndex(x => x == action);
+        Debug.Log(index);
+        if (index != -1)
+        {
+            Debug.Log(action.start + " -> " + action.end);
+            Debug.Log(actions[index].start + " -> " + actions[index].end);
+        }
     }
 }
 
@@ -165,6 +186,25 @@ public class Timeline : MonoBehaviour
 
     #region Action Events
 
+    private float GetActionStart(Action action, ActionActor actor)
+    {
+        float firstTimePos = 0.0f;
+        float endTimePos = firstTimePos + action.duration;
+
+        foreach (Action act in actor.actions)
+        {
+            if (act.start == firstTimePos
+                || (act.start > firstTimePos && act.start < endTimePos)
+                || (act.start < firstTimePos && act.end > firstTimePos))
+            {
+                firstTimePos = act.end;
+                endTimePos = firstTimePos + action.duration;
+            }
+        }
+
+        return firstTimePos;
+    }
+
     /*
      * This function is used to add action to the timeline.
      * A object can only have so many action, the whole action sequence cannot be superior to the timeline duration
@@ -193,22 +233,33 @@ public class Timeline : MonoBehaviour
         }
 
         i = objects.FindIndex(x => x.object_operator == object_operator);
-        // Check total action duration of the current object_operator - HOW ?
+        // Check if actor is not already filled with actions (total actions duration vs timeline duration)
         float actionCurrentSum = 0.0f;
         foreach (Action act in objects[i].actions)
-        {
             actionCurrentSum += act.duration;
-        }
         actionCurrentSum += action.duration;
-        if (actionCurrentSum >= this.duration)
+        if (actionCurrentSum > this.duration)
         {
             print("Error, timeline is full");
             return;
+        }
+        else
+        {
+            // Check where we can place the new action
+            float startTime = GetActionStart(action, objects[i]);
+            if (startTime >= duration || startTime + action.duration > duration)
+            {   
+                print("Error, timeline is full");
+                return;
+            }
+            action.start = startTime;
+            action.end = startTime + action.duration;
         }
 
         // Add action to the timeline
         actions.Add(action);
         objects[i].AddAction(action);
+        objects[i].SortActions();
         objects_event[i].GetComponent<TimelineEvent>().AddEvent(action);
     }
 

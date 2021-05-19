@@ -47,15 +47,15 @@ public class TimelineEvent : MonoBehaviour
     {
         float prefabWidth = eventPrefab.GetComponent<RectTransform>().sizeDelta.x;
         float lineWidth = timelineObject.GetComponent<RectTransform>().sizeDelta.x;
-        int maxNumOfEventPossible = (int)(parent.duration - 1f);
+        int maxNumOfEventPossible = (int)(parent.duration);
         prefabWidth = lineWidth / maxNumOfEventPossible;
         //prefabWidth = 25f;
 
-        GameObject new_event = Instantiate(eventPrefab, new Vector3(prefabWidth * eventList.Count, 0, 0), Quaternion.identity);
+        GameObject new_event = Instantiate(eventPrefab, new Vector3(0, 0, 0), Quaternion.identity);
         new_event.transform.SetParent(timelineObject.transform, false);
         new_event.GetComponent<RectTransform>().sizeDelta = new Vector2(prefabWidth, 30);
         eventList.Add(new_event);
-        new_event.GetComponent<TimelineEventButton>().SetProperties((int)(action.type), action.start, action.end, action.duration, action, Action.GetActionName(action.type));
+        new_event.GetComponent<TimelineEventButton>().SetProperties((int)(action.type), action.start, action.end, action.duration, action, actor, Action.GetActionName(action.type));
     }
 
     /*
