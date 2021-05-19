@@ -11,6 +11,8 @@ public enum actionType
     ROTATE
 }
 
+#region Action Classes
+
 public class Action
 {
     private int index;
@@ -112,6 +114,8 @@ public class ActionActor
         actionCount -= 1;
     }
 }
+
+#endregion
 
 public class Timeline : MonoBehaviour
 {
@@ -243,7 +247,7 @@ public class Timeline : MonoBehaviour
 
     #region Auxiliary Functions
 
-    private string timeToString(float value)
+    public static string timeToString(float value)
     {
         string str_time = "";
 
@@ -324,6 +328,8 @@ public class Timeline : MonoBehaviour
     public void StopTimeline() { isPlaying = false; timeCursor = 0.0f; UpdateCursorView(); UpdateOverview(); }
     public void RecordTimeline() { print("To implement"); }
 
+    public bool IsPlaying() { return isPlaying; }
+
     /*
      * This function shall execute the whole animation timeline (from current position to duration)
      */
@@ -333,6 +339,14 @@ public class Timeline : MonoBehaviour
             return;
         if (restart)
             timeCursor = 0.0f;
+
+        // Launch action (if any) in the timeline
+        foreach (GameObject _eventElem in objects_event)
+        {
+            TimelineEvent _event = _eventElem.GetComponent<TimelineEvent>();
+            _event.Play(timeCursor);
+        }
+
         if (isPlaying && timeCursor >= duration)
         {
             isPlaying = false;

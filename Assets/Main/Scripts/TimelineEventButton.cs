@@ -72,6 +72,20 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
 
     private Vector3 position;
 
+    private void UpdateTimeParameters()
+    {
+        double cur = System.Math.Round(transform.position.x, 2) - System.Math.Round(limitL.transform.position.x, 2);
+
+        double L = System.Math.Round(limitL.transform.position.x, 2) - System.Math.Round(limitL.transform.position.x, 2);
+        double R = System.Math.Round(limitR.transform.position.x, 2) - System.Math.Round(limitL.transform.position.x, 2);
+
+        double startTime = (cur / R) * Manager.Instance.GetDuration();
+        this.start = (float)startTime;
+        this.end = (float)(end + startTime);
+    }
+
+    private GameObject toolTip = null;
+
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (eventData.button == PointerEventData.InputButton.Right)
@@ -81,6 +95,10 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         }
         position = transform.position;
         transform.SetAsLastSibling();
+        // Display startTime tooltip
+        toolTip = Manager.Instance.GetEventTooltip();
+        toolTip.transform.position = new Vector3(this.transform.position.x, this.transform.position.y + this.gameObject.GetComponent<RectTransform>().sizeDelta.y, this.transform.position.z);
+        toolTip.SetActive(true);
     }
 
     /*
@@ -97,6 +115,11 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
             np.x = limitR.transform.position.x - width;
 
         transform.position = np;
+        // Update time parameters
+        UpdateTimeParameters();
+        // Set toolTip position and text
+        toolTip.transform.position = new Vector3(this.transform.position.x, this.transform.position.y + this.gameObject.GetComponent<RectTransform>().sizeDelta.y, this.transform.position.z);
+        toolTip.GetComponentInChildren<Text>().text = Timeline.timeToString(this.start);
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -108,5 +131,9 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         else if (np.x >= limitR.transform.position.x - width)
             np.x = limitR.transform.position.x - width;
         transform.position = np;
+
+        // Disable startTime tooltip
+        GameObject toolTip = Manager.Instance.GetEventTooltip();
+        toolTip.SetActive(false);
     }
 }

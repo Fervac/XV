@@ -18,6 +18,8 @@ public class ModelManager : MonoBehaviour
     private float moveDelta = 0.0f;
     private float takeDelta = 0.0f;
 
+    private float timePos = 0.0f;
+
     void Start()
     {
         isMoving = false;
@@ -57,39 +59,69 @@ public class ModelManager : MonoBehaviour
         }
     }
 
+    #region Animation Manager
+
+    /*
+     * To play action, we need to find which action is played at the current time.
+     * To do this, we'll iterate through the list of its actions. Hum... This actor does not have access to the said list.
+     */
+    private void PlayAction()
+    {
+
+    }
+
+    private void GoToAction()
+    {
+
+    }
+
+    #endregion
+
+    #region Animation Functions
+    public void Move()
+    {
+        moveDelta += Manager.Instance.GetTimeCursor() - timePos;
+        Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / current.duration);
+        // Animate model
+
+        this.transform.position = position;
+        // Move stuff (and rotate stuff ?)
+        if (moveDelta >= current.duration)
+        {
+            moveDelta = 0.0f;
+            isMoving = false;
+        }
+        timePos = Manager.Instance.GetTimeCursor();
+    }
+
+    public void Take()
+    {
+        takeDelta += Manager.Instance.GetTimeCursor() - timePos;
+        // Animate model
+
+        // Take stuff
+        if (takeDelta >= current.duration)
+        {
+            items.Add(current.object_target);
+            current.object_target.transform.localScale = new Vector3(0, 0, 0); // TODO : find other way to hide it | Maybe just `activeSelf = false`
+            takeDelta = 0.0f;
+            isTaking = false;
+        }
+        timePos = Manager.Instance.GetTimeCursor();
+    }
+
+    public void Use()
+    {
+        // Use
+        timePos = Manager.Instance.GetTimeCursor();
+    }
+    #endregion
+
     void Update()
     {
-        if (isMoving)
-        {
-            moveDelta += Time.deltaTime;
-            Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / current.duration);
-            // Animate model
-
-            this.transform.position = position;
-            // Move stuff (and rotate stuff ?)
-            if (moveDelta >= current.duration)
-            {
-                moveDelta = 0.0f;
-                isMoving = false;
-            }
-        }
-        if (isTaking)
-        {
-            takeDelta += Time.deltaTime;
-            // Animate model
-
-            // Take stuff
-            if (takeDelta >= current.duration)
-            {
-                items.Add(current.object_target);
-                current.object_target.transform.localScale = new Vector3(0, 0, 0); // TODO : find other way to hide it | Maybe just `activeSelf = false`
-                takeDelta = 0.0f;
-                isTaking = false;
-            }
-        }
-        if (isUsing)
-        {
-            // Use stuff
-        }
+        if (Manager.Instance.IsPlaying())
+            PlayAction();
+        else if (Manager.Instance.GetTimeCursor() != timePos)
+            GoToAction();
     }
 }

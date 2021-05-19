@@ -33,12 +33,24 @@ public class Manager : MonoBehaviour
     public GameObject PopupPrefab;
     public GameObject GlobalCanvas;
 
+    public Timeline timeline;
+    public GameObject eventToolTip;
+
     public Material GhostMat;
 
     private void Start()
     {
         loadedObjects = new List<GameObject>();
     }
+
+    #region TimelineManagement
+
+    public bool IsPlaying() { return timeline.IsPlaying(); }
+    public float GetTimeCursor() { return timeline.timeCursor; }
+    public float GetDuration() { return timeline.duration; }
+    public GameObject GetEventTooltip() { return eventToolTip; }
+
+    #endregion
 
     public GameObject AddToLoadedList(GameObject prefab)
     {

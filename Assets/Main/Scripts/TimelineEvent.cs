@@ -75,13 +75,20 @@ public class TimelineEvent : MonoBehaviour
         GameObject.Destroy(this.gameObject);
     }
 
+    /*
+     * Update event buttons width and position when the timeline duration change
+     */
     public void UpdateTimeline()
     {
-
     }
 
     /*
      * How to check where we can place the next event button ?
      * -> Make array of rect->width / width of event button ? and fill the array based on the position of the event buttons
      */
+
+    public void Play(float timeCursor)
+    {
+        List<Action> actions = actor.actions;
+    }
 }
