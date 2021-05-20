@@ -73,10 +73,54 @@ public class Manager : MonoBehaviour
                 GameObject tmp = Instantiate(prefab, hit.point, Quaternion.identity);
                 tmp.AddComponent<PopupObjectMenu>();
                 tmp.AddComponent<ModelManager>();
-                tmp.AddComponent<BoxCollider>();
+
+                tmp.AddComponent<BoxCollider>(); // Need Fixing
+
+                //AddBoxColliderToChildrenWithMeshRenderer(tmp.transform);
+
+                //FitBoxColliderToChildren(tmp.transform);
             }
         }
     }
+
+    //private void FitBoxColliderToChildren(Transform parent)
+    //{
+    //    var bounds = new Bounds(Vector3.zero, Vector3.zero);
+
+    //    bounds = EncapsulateBounds(parent, bounds);
+
+    //    var collider = GetComponent<BoxCollider>();
+    //    collider.center = bounds.center - parent.position;
+    //    collider.size = bounds.size;
+    //}
+
+    //private Bounds EncapsulateBounds(Transform transform, Bounds bounds)
+    //{
+    //    var renderer = transform.GetComponent<Renderer>();
+    //    if (renderer != null)
+    //    {
+    //        bounds.Encapsulate(renderer.bounds);
+    //    }
+
+    //    foreach (Transform child in transform)
+    //    {
+    //        bounds = EncapsulateBounds(child, bounds);
+    //    }
+
+    //    return bounds;
+    //}
+
+    //private void AddBoxColliderToChildrenWithMeshRenderer(Transform parent)
+    //{
+    //    foreach (Transform child in parent)
+    //    {
+    //        if (child.gameObject.GetComponent<MeshRenderer>())
+    //        {
+    //            child.gameObject.AddComponent<BoxCollider>();
+    //        }
+    //        AddBoxColliderToChildrenWithMeshRenderer(child);
+    //    }
+    //}
 
     public void SwitchShowWindow(GameObject window)
     {

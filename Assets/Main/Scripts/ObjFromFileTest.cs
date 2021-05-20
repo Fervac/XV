@@ -36,6 +36,8 @@ public class ObjFromFileTest : MonoBehaviour
             AddToScrollview(tmp);
 
             error = string.Empty;
+
+            loadedObject.transform.position = new Vector3(0, 800, 0);
         }
 
         if (!string.IsNullOrWhiteSpace(error))

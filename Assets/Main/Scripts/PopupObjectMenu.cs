@@ -10,6 +10,7 @@ public class PopupObjectMenu : MonoBehaviour
     private GameObject EmptyObj;
     private GameObject destroyButton;
     private GameObject rotateButton;
+    private GameObject closeButton;
 
     private void Awake()
     {
@@ -25,6 +26,7 @@ public class PopupObjectMenu : MonoBehaviour
 
         destroyButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "DestroyButton").gameObject;
         rotateButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "RotateButton").gameObject;
+        closeButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "CloseButton").gameObject;
     }
 
 
@@ -32,6 +34,7 @@ public class PopupObjectMenu : MonoBehaviour
     {
         destroyButton.GetComponent<Button>().onClick.AddListener(() => DestroyObject());
         rotateButton.GetComponent<Button>().onClick.AddListener(() => RotateObject());
+        closeButton.GetComponent<Button>().onClick.AddListener(() => CloseWindow());
     }
 
     private void OnMouseDown()
@@ -46,6 +49,7 @@ public class PopupObjectMenu : MonoBehaviour
     {
         destroyButton.GetComponent<Button>().onClick.RemoveListener(() => DestroyObject());
         rotateButton.GetComponent<Button>().onClick.RemoveListener(() => RotateObject());
+        closeButton.GetComponent<Button>().onClick.RemoveListener(() => CloseWindow());
 
         Destroy(EmptyObj.GetComponent<ClampPopup>().popup);
         Destroy(this.gameObject);
@@ -54,5 +58,10 @@ public class PopupObjectMenu : MonoBehaviour
     private void RotateObject()
     {
         gameObject.transform.Rotate(0, 90, 0);
+    }
+
+    private void CloseWindow()
+    {
+        Manager.Instance.SwitchShowWindow(EmptyObj.GetComponent<ClampPopup>().popup);
     }
 }
