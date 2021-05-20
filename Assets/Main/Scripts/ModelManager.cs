@@ -30,6 +30,44 @@ public class ModelManager : MonoBehaviour
         current = null;
         mount = null;
         items = new List<GameObject>();
+        SetCorrectOrientation();
+    }
+
+    private void SetCorrectOrientation()
+    {
+        GameObject parent = new GameObject("ModelParts");
+        List<Transform> children = new List<Transform>();
+
+        parent.transform.SetParent(this.transform);
+        parent.transform.localPosition = new Vector3(0, 0, 0);
+        foreach (Transform child in transform)
+            children.Add(child);
+        foreach (Transform child in children)
+            child.SetParent(parent.transform);
+        children.Clear();
+
+        this.transform.GetChild(0).localEulerAngles = new Vector3(0, 90 - this.transform.eulerAngles.y, 0);
+        Bounds bounds = CalculateLocalBounds();
+        this.transform.GetChild(0).localPosition = new Vector3(bounds.extents.x, this.transform.GetChild(0).localPosition.y, this.transform.GetChild(0).localPosition.z);
+    }
+
+    private Bounds CalculateLocalBounds()
+    {
+        Quaternion currentRotation = this.transform.rotation;
+        this.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+
+        Bounds bounds = new Bounds(this.transform.position, Vector3.zero);
+
+        foreach (Renderer renderer in GetComponentsInChildren<Renderer>())
+        {
+            bounds.Encapsulate(renderer.bounds);
+        }
+
+        Vector3 localCenter = bounds.center - this.transform.position;
+        bounds.center = localCenter;
+
+        this.transform.rotation = currentRotation;
+        return bounds;
     }
 
     /*
@@ -57,6 +95,8 @@ public class ModelManager : MonoBehaviour
             default:
                 return;
         }
+        if (isMoving)
+            Move();
     }
 
     #region Animation Manager
@@ -67,12 +107,22 @@ public class ModelManager : MonoBehaviour
      */
     private void PlayAction()
     {
-
+        //print(current);
+        if (current == null)
+            return;
+        DoAction(current);
     }
 
     private void GoToAction()
     {
-
+        if (current == null)
+            return;
+        if (current.start > Manager.Instance.GetTimeCursor() || current.end < Manager.Instance.GetTimeCursor())
+        {
+            current = null;
+            return;
+        }
+        DoAction(current);
     }
 
     #endregion
@@ -80,19 +130,46 @@ public class ModelManager : MonoBehaviour
     #region Animation Functions
     public void Move()
     {
-        moveDelta += Manager.Instance.GetTimeCursor() - timePos;
+        if (Manager.Instance.GetTimeCursor() < timePos)
+            moveDelta -= -Manager.Instance.GetTimeCursor() + timePos;
+        else
+            moveDelta += Manager.Instance.GetTimeCursor() - timePos;
+        //Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / current.duration);
+        /*if (moveDelta >= current.duration)
+            moveDelta = current.duration;*/
         Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / current.duration);
         // Animate model
 
         this.transform.position = position;
         // Move stuff (and rotate stuff ?)
-        if (moveDelta >= current.duration)
+        if (moveDelta >= current.duration || moveDelta <= 0.0f)
         {
             moveDelta = 0.0f;
             isMoving = false;
         }
         timePos = Manager.Instance.GetTimeCursor();
     }
+
+    /*public void Rotate()
+    {
+        if (Manager.Instance.GetTimeCursor() < timePos)
+            moveDelta -= -Manager.Instance.GetTimeCursor() + timePos;
+        else
+            moveDelta += Manager.Instance.GetTimeCursor() - timePos;
+        //Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / current.duration);
+        
+        Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / current.duration);
+        // Animate model
+
+        this.transform.position = position;
+        // Move stuff (and rotate stuff ?)
+        if (moveDelta >= current.duration || moveDelta <= 0.0f)
+        {
+            moveDelta = 0.0f;
+            isMoving = false;
+        }
+        timePos = Manager.Instance.GetTimeCursor();
+    }*/
 
     public void Take()
     {
@@ -123,5 +200,10 @@ public class ModelManager : MonoBehaviour
             PlayAction();
         else if (Manager.Instance.GetTimeCursor() != timePos)
             GoToAction();
+
+        /* Little code to show where is the forward direction
+        Vector3 forward = transform.TransformDirection(Vector3.forward) * 2f;
+        Debug.DrawRay(transform.position, forward, Color.green);
+        */
     }
 }

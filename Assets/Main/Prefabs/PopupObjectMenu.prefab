@@ -493,7 +493,7 @@ GameObject:
   - component: {fileID: 7953573848486790839}
   - component: {fileID: 1455306114624248549}
   m_Layer: 5
-  m_Name: Move
+  m_Name: MoveButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

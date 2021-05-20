@@ -65,7 +65,21 @@ public class TimelineEvent : MonoBehaviour
     public void DeleteEvent(GameObject eventButton, Action _event)
     {
         parent.DeleteAction(_event, _event.object_operator);
-        eventList.Remove(eventButton);
+        if (eventButton == null)
+        {
+            foreach (GameObject _eventButton in eventList)
+            {
+                TimelineEventButton btn = _eventButton.GetComponent<TimelineEventButton>();
+                if (btn && btn.action == _event)
+                {
+                    eventButton = _eventButton;
+                    GameObject.Destroy(eventButton);
+                    break;
+                }
+            }
+        }
+        if (eventButton)
+            eventList.Remove(eventButton);
         if (eventList.Count == 0)
             DeleteActor();
     }
@@ -73,6 +87,14 @@ public class TimelineEvent : MonoBehaviour
     public void DeleteActor()
     {
         GameObject.Destroy(this.gameObject);
+    }
+
+    public void DeleteLine()
+    {
+        while (actor.actions.Count > 0) // TODO & WARNING : Not cool
+        {
+            DeleteEvent(null, actor.actions[0]);
+        }
     }
 
     /*
@@ -89,6 +111,43 @@ public class TimelineEvent : MonoBehaviour
 
     public void Play(float timeCursor)
     {
+        ModelManager model = actor.object_operator ? actor.object_operator.GetComponent<ModelManager>() : null;
         List<Action> actions = actor.actions;
+        Action current = null, nextAction = null;
+
+        if (model == null)
+            return;
+        current = model.current;
+
+        // First we find the current action (remember, no overlap) | TODO : overlap detection
+        foreach (Action act in actions)
+        {
+            if (act.start <= timeCursor && act.end >= timeCursor)
+                nextAction = act;
+            if (act.start > timeCursor)
+                break;
+        }
+        if (current != nextAction)
+            model.current = nextAction;
+    }
+
+    public void PlayUntil(float timeCursor)
+    {
+        ModelManager model = actor.object_operator ? actor.object_operator.GetComponent<ModelManager>() : null;
+        List<Action> actions = actor.actions;
+        Action current = null, nextAction = null;
+
+        if (model == null)
+            return;
+        current = model.current;
+
+        // First we find the current action (remember, no overlap) | TODO : overlap detection
+        foreach (Action act in actions)
+        {
+            if (act.start > timeCursor)
+                break;
+            nextAction = act;
+            model.current = nextAction;
+        }
     }
 }

@@ -2,6 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*public enum overlayStyle
+{
+
+}*/
+
 public class CameraManager : MonoBehaviour
 {
     public float mainSpeed = 100.0f; //regular speed
@@ -10,8 +15,17 @@ public class CameraManager : MonoBehaviour
     public float velocityModifier = 1f;
     public float rotationModifier = 1f;
 
+    public bool overlay = false;
+    //public int overlayStyle = 0;
+    public GameObject _operator = null;
+
+    private float overlayTimer = 0.0f;
+    private int overlayTimerModifier = 1;
+
     void Update()
     {
+        if (overlay && _operator)
+            MouseOverlay();
         /*lastMouse = Input.mousePosition - lastMouse;
         lastMouse = new Vector3(-lastMouse.y * camSens, lastMouse.x * camSens, 0);
         lastMouse = new Vector3(transform.eulerAngles.x + lastMouse.x, transform.eulerAngles.y + lastMouse.y, 0);
@@ -49,6 +63,56 @@ public class CameraManager : MonoBehaviour
             transform.eulerAngles = eulers + r;
             transform.position = point;
         }
+    }
+
+    private void MouseOverlay()
+    {
+        Vector3 endpoint = new Vector3(0, 0, 0);
+        Ray ray;
+        bool valid = false;
+        RaycastHit hit;
+
+        ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out hit, 100.0f))
+        {
+            if (hit.collider.CompareTag("Floor"))
+            {
+                endpoint = hit.point;
+                valid = true;
+            }
+            else
+                valid = false;
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                overlay = false;
+                _operator = null;
+                valid = false;
+                overlayTimer = 0.0f;
+            }
+            // Quit
+            if (Input.GetMouseButtonDown(0) && valid)
+            {
+                _operator.GetComponent<PopupObjectMenu>().endpoint = endpoint;
+                overlay = false;
+                _operator = null;
+            }
+        }
+
+        if (overlayTimer < 0.0f)
+            overlayTimer = 0.0f;
+        else if (overlayTimer >= 0.5f)
+            overlayTimer = 0.5f;
+        GameObject.Find("MoveOverlay").transform.localScale = Vector3.Lerp(new Vector3(0.125f, 0.125f, 0.125f), new Vector3(0.0625f, 0.0625f, 0.0625f), overlayTimer / 0.5f);
+
+        if (!overlay && GameObject.Find("MoveOverlay").activeSelf)
+            GameObject.Find("MoveOverlay").transform.position = new Vector3(0, 0, 0);
+        else
+            GameObject.Find("MoveOverlay").transform.position = endpoint + new Vector3(0, 0.01f, 0);
+        overlayTimer += Time.deltaTime * overlayTimerModifier;
+        if (overlayTimer <= 0.0f)
+            overlayTimerModifier = 1;
+        else if (overlayTimer > 0.5f)
+            overlayTimerModifier = -1;
     }
 
     private Vector3 RotatePointAroundPivot(Vector3 point, Vector3 pivot, Vector3 angles)

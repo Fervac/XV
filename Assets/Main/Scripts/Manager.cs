@@ -30,6 +30,8 @@ public class Manager : MonoBehaviour
 
     List<GameObject> loadedObjects;
 
+    public GameObject ObjetParent;
+
     public GameObject PopupPrefab;
     public GameObject GlobalCanvas;
 
@@ -52,6 +54,8 @@ public class Manager : MonoBehaviour
 
     #endregion
 
+    #region ObjectManagement
+
     public GameObject AddToLoadedList(GameObject prefab)
     {
         loadedObjects.Add(prefab);
@@ -61,7 +65,7 @@ public class Manager : MonoBehaviour
         return tmp;
     }
 
-    public void SpawnPrefab(GameObject prefab)
+    public void SpawnPrefab(GameObject prefab, Transform _transform)
     {
         Ray ray;
         RaycastHit hit;
@@ -74,11 +78,15 @@ public class Manager : MonoBehaviour
                 tmp.AddComponent<PopupObjectMenu>();
                 tmp.AddComponent<ModelManager>();
 
+                tmp.transform.eulerAngles = _transform.eulerAngles;
+
                 tmp.AddComponent<BoxCollider>(); // Need Fixing
 
                 //AddBoxColliderToChildrenWithMeshRenderer(tmp.transform);
 
                 //FitBoxColliderToChildren(tmp.transform);
+
+                tmp.transform.SetParent(ObjetParent.transform);
             }
         }
     }
@@ -121,6 +129,8 @@ public class Manager : MonoBehaviour
     //        AddBoxColliderToChildrenWithMeshRenderer(child);
     //    }
     //}
+
+    #endregion
 
     public void SwitchShowWindow(GameObject window)
     {

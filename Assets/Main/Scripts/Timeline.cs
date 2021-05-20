@@ -205,6 +205,27 @@ public class Timeline : MonoBehaviour
         return firstTimePos;
     }
 
+    private Vector3 GetActionStartPos(Action action, ActionActor actor)
+    {
+        Vector3 startpos = actor.object_operator.transform.position;
+        float firstTimePos = 0.0f;
+        float endTimePos = firstTimePos + action.duration;
+
+        foreach (Action act in actor.actions)
+        {
+            if ((act.start == firstTimePos
+                || (act.start > firstTimePos && act.start < endTimePos)
+                || (act.start < firstTimePos && act.end > firstTimePos)) && act.type == actionType.MOVE)
+            {
+                firstTimePos = act.end;
+                endTimePos = firstTimePos + action.duration;
+                startpos = act.end_pos;
+            }
+        }
+
+        return startpos;
+    }
+
     /*
      * This function is used to add action to the timeline.
      * A object can only have so many action, the whole action sequence cannot be superior to the timeline duration
@@ -252,6 +273,8 @@ public class Timeline : MonoBehaviour
                 print("Error, timeline is full");
                 return;
             }
+            if (action.type == actionType.MOVE)
+                action.start_pos = GetActionStartPos(action, objects[i]);
             action.start = startTime;
             action.end = startTime + action.duration;
         }
@@ -282,15 +305,50 @@ public class Timeline : MonoBehaviour
                 objects.RemoveAt(i);
                 objects_event.RemoveAt(i);
                 if (index > 0)
-                {
-                    print("hllo");
                     index--;
-                }
             }
         }
         else
         {
             // ERROR, should not be here
+        }
+    }
+
+    public void DeleteActor(GameObject actor)
+    {
+        if (!actor)
+            return;
+        ActionActor aa = null;
+        GameObject obj = null;
+
+        int i = objects.FindIndex(x => x.object_operator == actor);
+        if (i == -1)
+            return;
+        aa = objects[i];
+        obj = objects_event.Find(x => x.GetComponent<TimelineEvent>().actor.object_operator == actor);
+        if (aa.actions.Count > 0)
+            obj.GetComponent<TimelineEvent>().DeleteEvent(null, aa.actions[0]);
+        DeleteActor(actor);
+    }
+
+    /*
+     * This functions shall delete all actions and actionActor.
+     * WARNING : This does not delete objects in the scene, only their actions;
+     */
+    public void ClearTimeline()
+    {
+        GameObject eventLine = null;
+
+        while (objects_event.Count > 0)
+        {
+            eventLine = objects_event[0];
+            if (eventLine != null && eventLine.GetComponent<TimelineEvent>() && eventLine.GetComponent<TimelineEvent>().actor.actions.Count > 0)
+                eventLine.GetComponent<TimelineEvent>().DeleteEvent(null, eventLine.GetComponent<TimelineEvent>().actor.actions[0]);
+            else
+            {
+                print("Error should not be here");
+                break;
+            }
         }
     }
 
@@ -356,6 +414,9 @@ public class Timeline : MonoBehaviour
         timeCursor = value * duration;
         UpdateCursorView();
         UpdateOverview();
+
+        // Play all actions till this point
+        PlayUntil();
     }
 
     private void UpdateCursorView()
@@ -409,6 +470,21 @@ public class Timeline : MonoBehaviour
         UpdateOverview();
     }
 
+    /*
+     * This function shall execute the animation till the current time cursor position
+     */
+    public void PlayUntil()
+    {
+        if (isPlaying)
+            return;
+
+        foreach (GameObject _eventElem in objects_event)
+        {
+            TimelineEvent _event = _eventElem.GetComponent<TimelineEvent>();
+            _event.PlayUntil(timeCursor);
+        }
+    }
+
     static int k = 0;
     static int p = 1;
     static int index = 0;
@@ -450,6 +526,10 @@ public class Timeline : MonoBehaviour
             index++;
             if (index >= objects_event.Count)
                 index = 0;
+        }
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            ClearTimeline();
         }
     }
 }

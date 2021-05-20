@@ -19,6 +19,7 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
     private GameObject limitR;
 
     private Action _event;
+    public Action action { get { return _event; } }
     private ActionActor actor;
 
     void Start()
