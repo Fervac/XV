@@ -147,7 +147,7 @@ public class TimelineEvent : MonoBehaviour
             if (act.start > timeCursor)
                 break;
             nextAction = act;
-            model.current = nextAction;
+            model.PlayAction(nextAction);
         }
     }
 }

@@ -72,6 +72,7 @@ public class PopupObjectMenu : MonoBehaviour
         if (!EventSystem.current.IsPointerOverGameObject())
         {
             Manager.Instance.SwitchShowWindow(GetComponentInChildren<ClampPopup>().popup);
+            Manager.Instance.timeline.PauseTimeline(); // TODO : Not sure about this
         }
     }
 
@@ -105,7 +106,9 @@ public class PopupObjectMenu : MonoBehaviour
         if (!(point.Equals(new Vector3(0, 0, 0))))
         {
             // Add action to the timeline
-            Action move = new Action(Manager.Instance.timeline.actions.Count, 1f, 0f, 1f, actionType.MOVE, this.gameObject, null, this.transform.position, _endpoint);
+            Action move = new Action(Manager.Instance.timeline.actions.Count, 1f, 0f, 1f, actionType.MOVE, this.gameObject, null,
+                this.transform.position, _endpoint,
+                this.transform.rotation, Quaternion.identity);
             Manager.Instance.timeline.AddAction(move, this.gameObject);
         }
 

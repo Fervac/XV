@@ -16,9 +16,6 @@ public class ModelManager : MonoBehaviour
     public Action current;
 
     private float moveDelta = 0.0f;
-    private float takeDelta = 0.0f;
-
-    private float timePos = 0.0f;
 
     void Start()
     {
@@ -70,11 +67,33 @@ public class ModelManager : MonoBehaviour
         return bounds;
     }
 
+    private bool CompleteAction(Action action)
+    {
+        if (action.start > Manager.Instance.GetTimeCursor())
+            return true;
+        if (action.end < Manager.Instance.GetTimeCursor())
+        {
+            switch(action.type)
+            {
+                case actionType.MOVE:
+                    this.transform.position = action.end_pos;
+                    break;
+                default:
+                    break;
+            }
+            return true;
+        }
+        return false;
+    }
+
     /*
      * Function used to dispatch action behavior. 
      */
-    public void DoAction(Action action)
+    public void PlayAction(Action action)
     {
+        current = action;
+        if (action == null || CompleteAction(action))
+            return;
         switch (action.type)
         {
             case actionType.MOVE:
@@ -101,53 +120,36 @@ public class ModelManager : MonoBehaviour
 
     #region Animation Manager
 
-    /*
-     * To play action, we need to find which action is played at the current time.
-     * To do this, we'll iterate through the list of its actions. Hum... This actor does not have access to the said list.
-     */
-    private void PlayAction()
-    {
-        //print(current);
-        if (current == null)
-            return;
-        DoAction(current);
-    }
-
-    private void GoToAction()
-    {
-        if (current == null)
-            return;
-        if (current.start > Manager.Instance.GetTimeCursor() || current.end < Manager.Instance.GetTimeCursor())
-        {
-            current = null;
-            return;
-        }
-        DoAction(current);
-    }
-
     #endregion
 
     #region Animation Functions
+
     public void Move()
     {
-        if (Manager.Instance.GetTimeCursor() < timePos)
-            moveDelta -= -Manager.Instance.GetTimeCursor() + timePos;
-        else
-            moveDelta += Manager.Instance.GetTimeCursor() - timePos;
+        moveDelta = Manager.Instance.GetTimeCursor() - current.start;
         //Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / current.duration);
         /*if (moveDelta >= current.duration)
             moveDelta = current.duration;*/
-        Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / current.duration);
+
+        // Rotate object to face destination
+        // First we compute the direction vector between the start point and the end point
+        // The move will always end up facing the end point (after all when we walk we look toward the point we go to)
+        /*Vector3 dir = Vector3.Normalize(current.end_pos - current.start_pos);
+        print(transform.forward + " vs " + dir);
+
+        Quaternion rotation = Quaternion.FromToRotation(transform.forward, dir);
+        this.transform.rotation = rotation;*/
+
+        Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / (current.duration));
         // Animate model
 
         this.transform.position = position;
         // Move stuff (and rotate stuff ?)
-        if (moveDelta >= current.duration || moveDelta <= 0.0f)
+        if (moveDelta >= current.end)
         {
             moveDelta = 0.0f;
             isMoving = false;
         }
-        timePos = Manager.Instance.GetTimeCursor();
     }
 
     /*public void Rotate()
@@ -171,7 +173,7 @@ public class ModelManager : MonoBehaviour
         timePos = Manager.Instance.GetTimeCursor();
     }*/
 
-    public void Take()
+    /*public void Take()
     {
         takeDelta += Manager.Instance.GetTimeCursor() - timePos;
         // Animate model
@@ -191,16 +193,16 @@ public class ModelManager : MonoBehaviour
     {
         // Use
         timePos = Manager.Instance.GetTimeCursor();
-    }
+    }*/
     #endregion
 
     void Update()
     {
         if (Manager.Instance.IsPlaying())
-            PlayAction();
-        else if (Manager.Instance.GetTimeCursor() != timePos)
-            GoToAction();
-
+            PlayAction(current);
+        /*else if (Manager.Instance.GetTimeCursor() != timePos)
+            GoToAction();*/
+        
         /* Little code to show where is the forward direction
         Vector3 forward = transform.TransformDirection(Vector3.forward) * 2f;
         Debug.DrawRay(transform.position, forward, Color.green);

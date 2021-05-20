@@ -27,8 +27,13 @@ public class Action
     public GameObject object_operator;
     public GameObject object_target;
 
-    public Vector3 start_pos; // TODO : Maybe add rotation start and end
+    public Vector3 start_pos;
     public Vector3 end_pos;
+
+    public Quaternion start_rot;
+    public Quaternion end_rot;
+
+    #region Action Declaration
 
     public Action(int index, float duration, float start, float end, actionType type, GameObject object_operator, GameObject object_target = null)
     {
@@ -61,6 +66,29 @@ public class Action
         this.start_pos = start_pos;
         this.end_pos = end_pos;
     }
+
+    public Action(int index, float duration, float start, float end, actionType type, GameObject object_operator, GameObject object_target,
+        Vector3 start_pos, Vector3 end_pos, Quaternion start_rot, Quaternion end_rot)
+    {
+        this.index = index;
+
+        this.duration = duration;
+        this.start = start;
+        this.end = end;
+
+        this.type = type;
+
+        this.object_operator = object_operator;
+        this.object_target = object_target;
+
+        this.start_pos = start_pos;
+        this.end_pos = end_pos;
+
+        this.start_rot = start_rot;
+        this.end_rot = end_rot;
+    }
+
+    #endregion
 
     public static string GetActionName(actionType type)
     {
@@ -215,7 +243,7 @@ public class Timeline : MonoBehaviour
         {
             if ((act.start == firstTimePos
                 || (act.start > firstTimePos && act.start < endTimePos)
-                || (act.start < firstTimePos && act.end > firstTimePos)) && act.type == actionType.MOVE)
+                || (act.start < firstTimePos && act.end > firstTimePos)))
             {
                 firstTimePos = act.end;
                 endTimePos = firstTimePos + action.duration;
@@ -273,7 +301,7 @@ public class Timeline : MonoBehaviour
                 print("Error, timeline is full");
                 return;
             }
-            if (action.type == actionType.MOVE)
+            if (action.type == actionType.MOVE) // TODO : Modify, each actionType will need to have pos and rot
                 action.start_pos = GetActionStartPos(action, objects[i]);
             action.start = startTime;
             action.end = startTime + action.duration;
