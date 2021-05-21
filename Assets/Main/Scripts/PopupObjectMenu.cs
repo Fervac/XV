@@ -16,6 +16,7 @@ public class PopupObjectMenu : MonoBehaviour
     private InputField nameField;
     private String nameTag;
 
+    private FlexibleColorPicker fcp;
     private bool _coloring = false;
 
     private Vector3 _endpoint = new Vector3(0, 0, 0);
@@ -151,9 +152,13 @@ public class PopupObjectMenu : MonoBehaviour
 
     private void ColorObject()
     {
-        Manager.Instance.SwitchShowWindow(Manager.Instance.fcp.transform.parent.gameObject);
+        //Manager.Instance.SwitchShowWindow(Manager.Instance.fcp.transform.parent.gameObject);
+
+        Manager.Instance.SwitchShowWindow(EmptyObj.GetComponent<ClampPopup>().holderFcp);
 
         _coloring = !_coloring;
+
+        //popup color display
     }
 
     private void ManageWindow()
@@ -178,7 +183,7 @@ public class PopupObjectMenu : MonoBehaviour
             {
                 foreach (Material mat in thisMeshRenderer.materials)
                 {
-                    mat.SetColor("_Color", Manager.Instance.fcp.color);
+                    mat.SetColor("_Color", EmptyObj.GetComponent<ClampPopup>().fcp.color);
                 }
             }
         }
