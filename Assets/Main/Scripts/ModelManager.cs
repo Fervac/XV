@@ -16,6 +16,8 @@ public class ModelManager : MonoBehaviour
     public Action current;
 
     private float moveDelta = 0.0f;
+    private bool angleSet = false;
+    private float angle = 0.0f;
 
     void Start()
     {
@@ -23,11 +25,22 @@ public class ModelManager : MonoBehaviour
         isRotating = false;
         isTaking = false;
         isUsing = false;
+        angleSet = false;
 
         current = null;
         mount = null;
         items = new List<GameObject>();
-        SetCorrectOrientation();
+        //SetCorrectOrientation();
+    }
+
+    public void ResetVariables()
+    {
+        isRotating = false;
+        isTaking = false;
+        isUsing = false;
+
+        isMoving = false;
+        angleSet = false;
     }
 
     private void SetCorrectOrientation()
@@ -91,6 +104,8 @@ public class ModelManager : MonoBehaviour
      */
     public void PlayAction(Action action)
     {
+        if (action != current)
+            ResetVariables();
         current = action;
         if (action == null || CompleteAction(action))
             return;
@@ -134,11 +149,18 @@ public class ModelManager : MonoBehaviour
         // Rotate object to face destination
         // First we compute the direction vector between the start point and the end point
         // The move will always end up facing the end point (after all when we walk we look toward the point we go to)
-        /*Vector3 dir = Vector3.Normalize(current.end_pos - current.start_pos);
-        print(transform.forward + " vs " + dir);
-
-        Quaternion rotation = Quaternion.FromToRotation(transform.forward, dir);
-        this.transform.rotation = rotation;*/
+        if (!angleSet)
+        {
+            angle = current.angle;
+            angleSet = true;
+        }
+        float angleDelta = Mathf.Lerp(0, angle, moveDelta / (0.15f));
+        if (angleDelta != 0.0f || angleDelta != angle)
+        {
+            transform.eulerAngles = new Vector3(current.start_forward.x,
+                current.start_forward.y + angleDelta,
+                current.start_forward.z);
+        }
 
         Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / (current.duration));
         // Animate model

@@ -67,7 +67,7 @@ public class Manager : MonoBehaviour
         return tmp;
     }
 
-    public void SpawnPrefab(GameObject prefab, Transform _transform)
+    public void SpawnPrefab(GameObject prefab, Quaternion _rot, Vector3 _eulers)
     {
         Ray ray;
         RaycastHit hit;
@@ -76,61 +76,53 @@ public class Manager : MonoBehaviour
         {
             if (hit.collider.CompareTag("Floor"))
             {
-                GameObject tmp = Instantiate(prefab, hit.point, Quaternion.identity);
+                GameObject tmp = Instantiate(prefab, hit.point, _rot);
+                SetBoxCollider(tmp);
+
                 tmp.AddComponent<PopupObjectMenu>();
                 tmp.AddComponent<ModelManager>();
 
-                tmp.transform.eulerAngles = _transform.eulerAngles;
-
-                tmp.AddComponent<BoxCollider>(); // Need Fixing
-
-                //AddBoxColliderToChildrenWithMeshRenderer(tmp.transform);
-
-                //FitBoxColliderToChildren(tmp.transform);
-
+                tmp.transform.eulerAngles = _eulers;
                 tmp.transform.SetParent(ObjetParent.transform);
             }
         }
     }
 
-    //private void FitBoxColliderToChildren(Transform parent)
-    //{
-    //    var bounds = new Bounds(Vector3.zero, Vector3.zero);
+    private Bounds CalculateLocalBounds(GameObject ghostObject)
+    {
+        Quaternion currentRotation = ghostObject.transform.rotation;
+        ghostObject.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
 
-    //    bounds = EncapsulateBounds(parent, bounds);
+        Bounds bounds = new Bounds(ghostObject.transform.position, Vector3.zero);
 
-    //    var collider = GetComponent<BoxCollider>();
-    //    collider.center = bounds.center - parent.position;
-    //    collider.size = bounds.size;
-    //}
+        foreach (Renderer renderer in ghostObject.GetComponentsInChildren<Renderer>())
+        {
+            bounds.Encapsulate(renderer.bounds);
+        }
 
-    //private Bounds EncapsulateBounds(Transform transform, Bounds bounds)
-    //{
-    //    var renderer = transform.GetComponent<Renderer>();
-    //    if (renderer != null)
-    //    {
-    //        bounds.Encapsulate(renderer.bounds);
-    //    }
+        Vector3 localCenter = bounds.center - ghostObject.transform.position;
+        bounds.center = localCenter;
 
-    //    foreach (Transform child in transform)
-    //    {
-    //        bounds = EncapsulateBounds(child, bounds);
-    //    }
+        ghostObject.transform.rotation = currentRotation;
+        return bounds;
+    }
 
-    //    return bounds;
-    //}
+    private void SetBoxCollider(GameObject _object)
+    {
+        _object.AddComponent<BoxCollider>();
+        
+        Bounds bounds = CalculateLocalBounds(_object);
+        BoxCollider box = _object.GetComponent<BoxCollider>();
+        print(bounds);
+        print(box.center);
+        print(box.size);
 
-    //private void AddBoxColliderToChildrenWithMeshRenderer(Transform parent)
-    //{
-    //    foreach (Transform child in parent)
-    //    {
-    //        if (child.gameObject.GetComponent<MeshRenderer>())
-    //        {
-    //            child.gameObject.AddComponent<BoxCollider>();
-    //        }
-    //        AddBoxColliderToChildrenWithMeshRenderer(child);
-    //    }
-    //}
+        box.center = bounds.center;
+        box.size = bounds.extents * 2;
+
+        print(box.center);
+        print(box.size);
+    }
 
     #endregion
 

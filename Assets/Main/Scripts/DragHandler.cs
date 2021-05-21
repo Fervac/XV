@@ -79,9 +79,11 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 			child.SetParent(parent.transform);
 		children.Clear();
 
-		ghostObject.transform.GetChild(0).localEulerAngles = new Vector3(0, 90, 0);
+		//ghostObject.transform.GetChild(0).localEulerAngles = new Vector3(0, 90, 0);
+		ghostObject.transform.eulerAngles = new Vector3(0, 90, 0);
 		Bounds bounds = CalculateLocalBounds(ghostObject);
-		ghostObject.transform.GetChild(0).localPosition = new Vector3(bounds.extents.x, ghostObject.transform.GetChild(0).localPosition.y, ghostObject.transform.GetChild(0).localPosition.z);
+		ghostObject.transform.position = new Vector3(bounds.extents.x, ghostObject.transform.GetChild(0).localPosition.y, ghostObject.transform.GetChild(0).localPosition.z);
+		//ghostObject.transform.GetChild(0).localPosition = new Vector3(bounds.extents.x, ghostObject.transform.GetChild(0).localPosition.y, ghostObject.transform.GetChild(0).localPosition.z);
 	}
 
     private void Update()
@@ -123,14 +125,17 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 		canvasGroup.alpha = 1f;
 		transform.position = startPosition;
 
+		Quaternion rot = ghostObject.transform.rotation;
+		Vector3 eulers = ghostObject.transform.eulerAngles;
+		
+		Destroy(ghostObject);
 
 		// Check if the mouse was clicked over a UI element
 		if (!EventSystem.current.IsPointerOverGameObject())
 		{
-			Manager.Instance.SpawnPrefab(prefab, ghostObject.transform);
+			Manager.Instance.SpawnPrefab(prefab, rot, eulers);
 		}
 
-		Destroy(ghostObject);
 	}
 
 	#endregion

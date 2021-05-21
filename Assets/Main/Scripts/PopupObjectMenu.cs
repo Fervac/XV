@@ -125,10 +125,14 @@ public class PopupObjectMenu : MonoBehaviour
     {
         if (!(point.Equals(new Vector3(0, 0, 0))))
         {
+            Vector3 dir = Vector3.Normalize(_endpoint - transform.position);
+            float angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
+            Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
+
             // Add action to the timeline
             Action move = new Action(Manager.Instance.timeline.actions.Count, 1f, 0f, 1f, actionType.MOVE, this.gameObject, null,
                 this.transform.position, _endpoint,
-                this.transform.rotation, Quaternion.identity);
+                this.transform.eulerAngles, endEuler);
             Manager.Instance.timeline.AddAction(move, this.gameObject);
         }
 

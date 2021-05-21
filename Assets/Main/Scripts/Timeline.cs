@@ -30,8 +30,10 @@ public class Action
     public Vector3 start_pos;
     public Vector3 end_pos;
 
-    public Quaternion start_rot;
-    public Quaternion end_rot;
+    public Vector3 start_forward;
+    public Vector3 end_forward;
+
+    public float angle = 0.0f;
 
     #region Action Declaration
 
@@ -65,10 +67,13 @@ public class Action
         
         this.start_pos = start_pos;
         this.end_pos = end_pos;
+
+        Vector3 dir = Vector3.Normalize(end_pos - start_pos);
+        this.angle = Vector3.SignedAngle(object_operator.transform.forward, dir, new Vector3(0, 1, 0));
     }
 
     public Action(int index, float duration, float start, float end, actionType type, GameObject object_operator, GameObject object_target,
-        Vector3 start_pos, Vector3 end_pos, Quaternion start_rot, Quaternion end_rot)
+        Vector3 start_pos, Vector3 end_pos, Vector3 start_forward, Vector3 end_forward)
     {
         this.index = index;
 
@@ -84,8 +89,11 @@ public class Action
         this.start_pos = start_pos;
         this.end_pos = end_pos;
 
-        this.start_rot = start_rot;
-        this.end_rot = end_rot;
+        this.start_forward = start_forward;
+        this.end_forward = end_forward;
+
+        Vector3 dir = Vector3.Normalize(end_pos - start_pos);
+        this.angle = Vector3.SignedAngle(object_operator.transform.forward, dir, new Vector3(0, 1, 0));
     }
 
     #endregion
@@ -117,6 +125,23 @@ public class Action
     public static int SortByStartTime(Action a1, Action a2)
     {
         return a1.start.CompareTo(a2.start);
+    }
+
+    public void UpdateTransform(Vector3 startpos, Vector3 endForward)
+    {
+        Vector3 dir = Vector3.Normalize(this.end_pos - startpos);
+
+        Vector3 euler = this.object_operator.transform.eulerAngles;
+        this.object_operator.transform.eulerAngles = endForward;
+
+        this.angle = Vector3.SignedAngle(this.object_operator.transform.forward, dir, new Vector3(0, 1, 0));
+        this.object_operator.transform.eulerAngles = euler;
+        Vector3 endEuler = new Vector3(endForward.x, endForward.y + angle, endForward.z);
+
+        this.start_forward = endForward;
+        this.end_forward = endEuler;
+
+        this.start_pos = startpos;
     }
 }
 
@@ -160,6 +185,19 @@ public class ActionActor
         {
             Debug.Log(action.start + " -> " + action.end);
             Debug.Log(actions[index].start + " -> " + actions[index].end);
+        }
+    }
+
+    public void UpdateActions()
+    {
+        int i = -1;
+
+        foreach(Action act in actions)
+        {
+            if (act == actions[0])
+                continue;
+            ++i;
+            act.UpdateTransform(actions[i].end_pos, actions[i].end_forward);
         }
     }
 }
@@ -238,6 +276,7 @@ public class Timeline : MonoBehaviour
         Vector3 startpos = actor.object_operator.transform.position;
         float firstTimePos = 0.0f;
         float endTimePos = firstTimePos + action.duration;
+        Vector3 endForward = action.start_forward;
 
         foreach (Action act in actor.actions)
         {
@@ -248,9 +287,11 @@ public class Timeline : MonoBehaviour
                 firstTimePos = act.end;
                 endTimePos = firstTimePos + action.duration;
                 startpos = act.end_pos;
+                endForward = act.end_forward;
             }
         }
-
+        if (startpos != action.start_pos)
+            action.UpdateTransform(startpos, endForward);
         return startpos;
     }
 

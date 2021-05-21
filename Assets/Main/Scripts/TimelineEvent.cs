@@ -128,7 +128,10 @@ public class TimelineEvent : MonoBehaviour
                 break;
         }
         if (current != nextAction)
+        {
+            model.ResetVariables();
             model.current = nextAction;
+        }
     }
 
     public void PlayUntil(float timeCursor)
