@@ -39,6 +39,8 @@ public class Manager : MonoBehaviour
     public GameObject eventToolTip;
 
     public Material GhostMat;
+    public FlexibleColorPicker fcp;
+
 
     private void Start()
     {

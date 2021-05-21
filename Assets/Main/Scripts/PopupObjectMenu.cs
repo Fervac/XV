@@ -11,7 +11,10 @@ public class PopupObjectMenu : MonoBehaviour
     private GameObject destroyButton;
     private GameObject rotateButton;
     private GameObject moveButton;
+    private GameObject colorButton;
     private GameObject closeButton;
+
+    private bool _coloring = false;
 
     private Vector3 _endpoint = new Vector3(0, 0, 0);
     public Vector3 endpoint
@@ -48,6 +51,7 @@ public class PopupObjectMenu : MonoBehaviour
         destroyButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "DestroyButton").gameObject;
         rotateButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "RotateButton").gameObject;
         moveButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "MoveButton").gameObject;
+        colorButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "ColorButton").gameObject;
         closeButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "CloseButton").gameObject;
 
         OnChangeEndPoint += OnChangeEndPointHandler;
@@ -64,6 +68,7 @@ public class PopupObjectMenu : MonoBehaviour
         destroyButton.GetComponent<Button>().onClick.AddListener(() => DestroyObject());
         rotateButton.GetComponent<Button>().onClick.AddListener(() => RotateObject());
         moveButton.GetComponent<Button>().onClick.AddListener(() => MoveObject());
+        colorButton.GetComponent<Button>().onClick.AddListener(() => ColorObject());
         closeButton.GetComponent<Button>().onClick.AddListener(() => CloseWindow());
     }
 
@@ -82,6 +87,7 @@ public class PopupObjectMenu : MonoBehaviour
         rotateButton.GetComponent<Button>().onClick.RemoveListener(() => RotateObject());
         closeButton.GetComponent<Button>().onClick.RemoveListener(() => CloseWindow());
         moveButton.GetComponent<Button>().onClick.RemoveListener(() => MoveObject());
+        colorButton.GetComponent<Button>().onClick.RemoveListener(() => ColorObject());
         OnChangeEndPoint -= OnChangeEndPointHandler;
 
         Manager.Instance.timeline.DeleteActor(this.gameObject);
@@ -125,11 +131,33 @@ public class PopupObjectMenu : MonoBehaviour
 
     private void CloseWindow()
     {
+        if (_coloring)
+        {
+            ColorObject();
+        }
         Manager.Instance.SwitchShowWindow(EmptyObj.GetComponent<ClampPopup>().popup);
     }
 
-    void Update()
+    private void ColorObject()
     {
+        Manager.Instance.SwitchShowWindow(Manager.Instance.fcp.transform.parent.gameObject);
 
+        _coloring = !_coloring;
+    }
+
+    private void Update()
+    {
+        if (_coloring)
+        {
+            MeshRenderer[] meshRenderers = this.gameObject.GetComponentsInChildren<MeshRenderer>();
+
+            foreach (MeshRenderer thisMeshRenderer in meshRenderers)
+            {
+                foreach (Material mat in thisMeshRenderer.materials)
+                {
+                    mat.SetColor("_Color", Manager.Instance.fcp.color);
+                }
+            }
+        }
     }
 }

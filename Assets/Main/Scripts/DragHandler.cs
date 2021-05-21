@@ -52,8 +52,21 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 	private void GhostMode()
     {
 		ghostObject = Instantiate(prefab, Camera.main.ScreenToWorldPoint(transform.position), Quaternion.identity);
+
+		Renderer[] rends;
+		rends = ghostObject.GetComponentsInChildren<Renderer>();
+		foreach (Renderer rend in rends)
+		{
+			var mats = new Material[rend.materials.Length];
+			for (var j = 0; j < rend.materials.Length; j++)
+			{
+				mats[j] = Manager.Instance.GhostMat;
+			}
+			rend.materials = mats;
+		}
+
 		//ghostObject.GetComponent<MeshRenderer>().material = Manager.Instance.GhostMat;
-		
+
 		// The following code is to center and corretly place the ghost object
 		GameObject parent = new GameObject("ModelParts");
 		List<Transform> children = new List<Transform>();
