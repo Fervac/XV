@@ -30,7 +30,7 @@ public class ModelManager : MonoBehaviour
         current = null;
         mount = null;
         items = new List<GameObject>();
-        //SetCorrectOrientation();
+        SetCorrectOrientation();
     }
 
     public void ResetVariables()
@@ -59,6 +59,16 @@ public class ModelManager : MonoBehaviour
         this.transform.GetChild(0).localEulerAngles = new Vector3(0, 90 - this.transform.eulerAngles.y, 0);
         Bounds bounds = CalculateLocalBounds();
         this.transform.GetChild(0).localPosition = new Vector3(bounds.extents.x, this.transform.GetChild(0).localPosition.y, this.transform.GetChild(0).localPosition.z);
+
+        BoxCollider box = this.GetComponent<BoxCollider>();
+        Vector3 nsize = Quaternion.AngleAxis(90, Vector3.up) * box.size;
+        nsize.x = Mathf.Abs(nsize.x);
+        nsize.y = Mathf.Abs(nsize.y);
+        nsize.z = Mathf.Abs(nsize.z);
+        box.size = nsize;
+        box.center = new Vector3(0, bounds.extents.y, bounds.extents.z);
+        // Reactivate box collider
+        box.enabled = true;
     }
 
     private Bounds CalculateLocalBounds()

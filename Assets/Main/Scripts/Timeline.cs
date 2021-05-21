@@ -192,7 +192,10 @@ public class ActionActor
     {
         int i = -1;
 
-        foreach(Action act in actions)
+        if (actions.Count >= 1)
+            this.object_operator.transform.position = actions[0].start_pos;
+
+        foreach (Action act in actions)
         {
             if (act == actions[0])
                 continue;

@@ -113,15 +113,11 @@ public class Manager : MonoBehaviour
         
         Bounds bounds = CalculateLocalBounds(_object);
         BoxCollider box = _object.GetComponent<BoxCollider>();
-        print(bounds);
-        print(box.center);
-        print(box.size);
 
         box.center = bounds.center;
         box.size = bounds.extents * 2;
-
-        print(box.center);
-        print(box.size);
+        // Disable box collider before click is released
+        box.enabled = false;
     }
 
     #endregion

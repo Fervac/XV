@@ -79,11 +79,11 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 			child.SetParent(parent.transform);
 		children.Clear();
 
-		//ghostObject.transform.GetChild(0).localEulerAngles = new Vector3(0, 90, 0);
-		ghostObject.transform.eulerAngles = new Vector3(0, 90, 0);
+		ghostObject.transform.GetChild(0).localEulerAngles = new Vector3(0, 90, 0);
+		//ghostObject.transform.eulerAngles = new Vector3(0, 90, 0);
 		Bounds bounds = CalculateLocalBounds(ghostObject);
-		ghostObject.transform.position = new Vector3(bounds.extents.x, ghostObject.transform.GetChild(0).localPosition.y, ghostObject.transform.GetChild(0).localPosition.z);
-		//ghostObject.transform.GetChild(0).localPosition = new Vector3(bounds.extents.x, ghostObject.transform.GetChild(0).localPosition.y, ghostObject.transform.GetChild(0).localPosition.z);
+		//ghostObject.transform.position = new Vector3(bounds.extents.x, ghostObject.transform.GetChild(0).localPosition.y, ghostObject.transform.GetChild(0).localPosition.z);
+		ghostObject.transform.GetChild(0).localPosition = new Vector3(bounds.extents.x, ghostObject.transform.GetChild(0).localPosition.y, ghostObject.transform.GetChild(0).localPosition.z);
 	}
 
     private void Update()
