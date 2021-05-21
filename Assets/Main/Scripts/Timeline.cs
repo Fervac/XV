@@ -35,6 +35,9 @@ public class Action
 
     public float angle = 0.0f;
 
+    public string name = "";
+    public string notes = "";
+
     #region Action Declaration
 
     public Action(int index, float duration, float start, float end, actionType type, GameObject object_operator, GameObject object_target = null)
@@ -49,6 +52,8 @@ public class Action
 
         this.object_operator = object_operator;
         this.object_target = object_target;
+
+        this.name = GetActionFullName(type);
     }
 
     public Action(int index, float duration, float start, float end, actionType type, GameObject object_operator, GameObject object_target,
@@ -70,6 +75,8 @@ public class Action
 
         Vector3 dir = Vector3.Normalize(end_pos - start_pos);
         this.angle = Vector3.SignedAngle(object_operator.transform.forward, dir, new Vector3(0, 1, 0));
+
+        this.name = GetActionFullName(type);
     }
 
     public Action(int index, float duration, float start, float end, actionType type, GameObject object_operator, GameObject object_target,
@@ -94,6 +101,8 @@ public class Action
 
         Vector3 dir = Vector3.Normalize(end_pos - start_pos);
         this.angle = Vector3.SignedAngle(object_operator.transform.forward, dir, new Vector3(0, 1, 0));
+
+        this.name = GetActionFullName(type);
     }
 
     #endregion
@@ -117,6 +126,30 @@ public class Action
                 break;
             default:
                 name = "E";
+                break;
+        }
+        return name;
+    }
+
+    public static string GetActionFullName(actionType type)
+    {
+        string name = "";
+        switch (type)
+        {
+            case actionType.MOVE:
+                name = "Move";
+                break;
+            case actionType.ROTATE:
+                name = "Rotate";
+                break;
+            case actionType.TAKE:
+                name = "Interaction";
+                break;
+            case actionType.USE:
+                name = "Use";
+                break;
+            default:
+                name = "Error";
                 break;
         }
         return name;
@@ -152,12 +185,18 @@ public class ActionActor
 
     public List<Action> actions;
 
+    public Vector3 position;
+    public Vector3 rotation;
+
     public ActionActor(GameObject object_operator, int actionCount)
     {
         this.object_operator = object_operator;
         this.actionCount = actionCount;
 
         this.actions = new List<Action>();
+
+        position = object_operator.transform.position;
+        rotation = object_operator.transform.eulerAngles;
     }
 
     public void AddAction(Action action)
@@ -188,17 +227,29 @@ public class ActionActor
         }
     }
 
+    public void ResetTransform()
+    {
+        this.object_operator.transform.position = position;
+        this.object_operator.transform.eulerAngles = rotation;
+    }
+
     public void UpdateActions()
     {
         int i = -1;
 
         if (actions.Count >= 1)
-            this.object_operator.transform.position = actions[0].start_pos;
+        {
+            this.object_operator.transform.position = position;//actions[0].start_pos;
+            this.object_operator.transform.eulerAngles = rotation;
+        }
 
         foreach (Action act in actions)
         {
             if (act == actions[0])
+            {
+                act.UpdateTransform(position, rotation);
                 continue;
+            }
             ++i;
             act.UpdateTransform(actions[i].end_pos, actions[i].end_forward);
         }
@@ -293,6 +344,11 @@ public class Timeline : MonoBehaviour
                 endForward = act.end_forward;
             }
         }
+        if (firstTimePos != 0.0f)
+        {
+            action.start_pos = actor.position;
+            action.start_forward = actor.rotation;
+        }
         if (startpos != action.start_pos)
             action.UpdateTransform(startpos, endForward);
         return startpos;
@@ -374,10 +430,9 @@ public class Timeline : MonoBehaviour
             objects[i].DeleteAction(action);
             if (objects[i].actionCount == 0)
             {
+                objects[i].ResetTransform();
                 objects.RemoveAt(i);
                 objects_event.RemoveAt(i);
-                if (index > 0)
-                    index--;
             }
         }
         else
@@ -557,51 +612,11 @@ public class Timeline : MonoBehaviour
         }
     }
 
-    static int k = 0;
-    static int p = 1;
-    static int index = 0;
-
     void Update() // TODO : delete
     {
         if (isPlaying)
             Play(timeCursor == duration);
         if (Input.GetKeyDown(KeyCode.Space))
             isPlaying = !isPlaying;
-
-        if (Input.GetKeyDown(KeyCode.O))
-        {
-            GameObject tmp = new GameObject("tmp-" + k);
-            k++;
-            AddAction(new Action(actions.Count, 1f, 0f, 1f, actionType.MOVE, tmp, tmp, new Vector3(0, 0, 0), new Vector3(0, 0, 0)), tmp);
-        }
-        if (Input.GetKeyDown(KeyCode.I) && objects_event.Count > 0)
-        {
-            TimelineEvent tmp = objects_event[index].GetComponent<TimelineEvent>();
-            Action action;
-            switch (p % 3)
-            {
-                case 0:
-                    action = new Action(tmp.eventListCount(), 1f, 0f, 1f, actionType.MOVE, tmp.actor.object_operator);
-                    break;
-                case 2:
-                    action = new Action(tmp.eventListCount(), 1f, 0f, 1f, actionType.TAKE, tmp.actor.object_operator);
-                    break;
-                default:
-                    action = new Action(tmp.eventListCount(), 1f, 0f, 1f, actionType.USE, tmp.actor.object_operator);
-                    break;
-            }
-            AddAction(action, tmp.actor.object_operator);
-            p++;
-        }
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            index++;
-            if (index >= objects_event.Count)
-                index = 0;
-        }
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            ClearTimeline();
-        }
     }
 }

@@ -47,8 +47,8 @@ public class TimelineEvent : MonoBehaviour
     {
         float prefabWidth = eventPrefab.GetComponent<RectTransform>().sizeDelta.x;
         float lineWidth = timelineObject.GetComponent<RectTransform>().sizeDelta.x;
-        int maxNumOfEventPossible = (int)(parent.duration);
-        prefabWidth = lineWidth / maxNumOfEventPossible;
+        float maxNumOfEventPossible = 1f / parent.duration;
+        prefabWidth = lineWidth * maxNumOfEventPossible;
         //prefabWidth = 25f;
 
         GameObject new_event = Instantiate(eventPrefab, new Vector3(0, 0, 0), Quaternion.identity);
@@ -78,6 +78,9 @@ public class TimelineEvent : MonoBehaviour
                 }
             }
         }
+        ModelManager model = _event.object_operator ? _event.object_operator.GetComponent<ModelManager>() : null;
+        if (model)
+            model.current = null;
         if (eventButton)
             eventList.Remove(eventButton);
         if (eventList.Count == 0)
@@ -128,10 +131,7 @@ public class TimelineEvent : MonoBehaviour
                 break;
         }
         if (current != nextAction)
-        {
-            model.ResetVariables();
-            model.current = nextAction;
-        }
+            model.PlayAction(nextAction);
     }
 
     public void PlayUntil(float timeCursor)

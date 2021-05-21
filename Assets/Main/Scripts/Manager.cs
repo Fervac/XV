@@ -36,6 +36,7 @@ public class Manager : MonoBehaviour
     public GameObject GlobalCanvas;
 
     public Timeline timeline;
+    public TimelineEventDetailPanel eventDetailPanel;
     public GameObject eventToolTip;
 
     public Material GhostMat;

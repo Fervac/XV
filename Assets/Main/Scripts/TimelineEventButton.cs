@@ -69,9 +69,10 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
     public void OnPointerClick(PointerEventData eventData)
     {
         transform.SetAsLastSibling();
-        /*if (eventData.button == PointerEventData.InputButton.Left)
-            Debug.Log("Left click"); // Depend on where the input is, right mean change duration from right else from left or if in middle move event
-        else */
+        if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            Manager.Instance.eventDetailPanel.SetPanel(_event, this);
+        }
         if (eventData.button == PointerEventData.InputButton.Right)
             Dispose();
     }
@@ -194,5 +195,26 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         // Disable startTime tooltip
         GameObject toolTip = Manager.Instance.GetEventTooltip();
         toolTip.SetActive(false);
+    }
+
+    public void UpdateEvent()
+    {
+        this.start = _event.start;
+        this.end = _event.end;
+        if (_event.duration != this.duration)
+        {
+            float lineWidth = this.transform.parent.transform.parent.GetComponent<TimelineEvent>().timelineObject.GetComponent<RectTransform>().sizeDelta.x;
+            float durValue = (_event.duration) / Manager.Instance.timeline.duration;
+            if (durValue <= 0)
+            {
+                print("Error, bad bad");
+                return;
+            }
+            this.gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(lineWidth * (durValue), 30);
+        }
+        this.duration = _event.duration;
+        print(start + " " + end + " " + duration);
+
+        UpdatePositionByTime();
     }
 }
