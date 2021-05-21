@@ -76,6 +76,10 @@ public class PopupObjectMenu : MonoBehaviour
     {
         if (!EventSystem.current.IsPointerOverGameObject())
         {
+            if (_coloring)
+            {
+                ColorObject();
+            }
             Manager.Instance.SwitchShowWindow(GetComponentInChildren<ClampPopup>().popup);
             Manager.Instance.timeline.PauseTimeline(); // TODO : Not sure about this
         }
