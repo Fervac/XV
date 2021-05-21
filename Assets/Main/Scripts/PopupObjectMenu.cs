@@ -13,6 +13,8 @@ public class PopupObjectMenu : MonoBehaviour
     private GameObject moveButton;
     private GameObject colorButton;
     private GameObject closeButton;
+    private InputField nameField;
+    private String name;
 
     private bool _coloring = false;
 
@@ -53,6 +55,7 @@ public class PopupObjectMenu : MonoBehaviour
         moveButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "MoveButton").gameObject;
         colorButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "ColorButton").gameObject;
         closeButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "CloseButton").gameObject;
+        nameField = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "NameField").gameObject.GetComponent<InputField>();
 
         OnChangeEndPoint += OnChangeEndPointHandler;
     }
@@ -70,6 +73,15 @@ public class PopupObjectMenu : MonoBehaviour
         moveButton.GetComponent<Button>().onClick.AddListener(() => MoveObject());
         colorButton.GetComponent<Button>().onClick.AddListener(() => ColorObject());
         closeButton.GetComponent<Button>().onClick.AddListener(() => CloseWindow());
+
+        nameField.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
+        name = this.gameObject.name;
+        nameField.text = name;
+    }
+
+    private void ValueChangeCheck()
+    {
+        name = nameField.text;
     }
 
     private void OnMouseDown()
@@ -89,6 +101,7 @@ public class PopupObjectMenu : MonoBehaviour
         moveButton.GetComponent<Button>().onClick.RemoveListener(() => MoveObject());
         colorButton.GetComponent<Button>().onClick.RemoveListener(() => ColorObject());
         OnChangeEndPoint -= OnChangeEndPointHandler;
+        nameField.onValueChanged.RemoveListener(delegate { ValueChangeCheck(); });
 
         Manager.Instance.timeline.DeleteActor(this.gameObject);
 
