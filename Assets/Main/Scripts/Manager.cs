@@ -82,6 +82,7 @@ public class Manager : MonoBehaviour
 
                 tmp.AddComponent<PopupObjectMenu>();
                 tmp.AddComponent<ModelManager>();
+                tmp.AddComponent<DragObject>();
 
                 tmp.transform.eulerAngles = _eulers;
                 tmp.transform.SetParent(ObjetParent.transform);
