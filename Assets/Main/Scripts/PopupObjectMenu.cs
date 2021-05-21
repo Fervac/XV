@@ -14,7 +14,7 @@ public class PopupObjectMenu : MonoBehaviour
     private GameObject colorButton;
     private GameObject closeButton;
     private InputField nameField;
-    private String name;
+    private String nameTag;
 
     private bool _coloring = false;
 
@@ -47,9 +47,6 @@ public class PopupObjectMenu : MonoBehaviour
         EmptyObj.AddComponent<ClampPopup>();
         EmptyObj.GetComponent<ClampPopup>().CreatePopup();
 
-
-        //destroyButton = EmptyObj.GetComponent<ClampPopup>().popup.GetComponentInChildren<Button>();
-
         destroyButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "DestroyButton").gameObject;
         rotateButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "RotateButton").gameObject;
         moveButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "MoveButton").gameObject;
@@ -75,13 +72,13 @@ public class PopupObjectMenu : MonoBehaviour
         closeButton.GetComponent<Button>().onClick.AddListener(() => CloseWindow());
 
         nameField.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
-        name = this.gameObject.name;
-        nameField.text = name;
+        nameTag = this.gameObject.name;
+        nameField.text = nameTag;
     }
 
     private void ValueChangeCheck()
     {
-        name = nameField.text;
+        nameTag = nameField.text;
     }
 
     private void OnMouseDown()
