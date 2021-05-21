@@ -76,11 +76,7 @@ public class PopupObjectMenu : MonoBehaviour
     {
         if (!EventSystem.current.IsPointerOverGameObject())
         {
-            if (_coloring)
-            {
-                ColorObject();
-            }
-            Manager.Instance.SwitchShowWindow(GetComponentInChildren<ClampPopup>().popup);
+            ManageWindow();
             Manager.Instance.timeline.PauseTimeline(); // TODO : Not sure about this
         }
     }
@@ -96,6 +92,7 @@ public class PopupObjectMenu : MonoBehaviour
 
         Manager.Instance.timeline.DeleteActor(this.gameObject);
 
+        ManageWindow();
         Destroy(EmptyObj.GetComponent<ClampPopup>().popup);
         Destroy(this.gameObject);
     }
@@ -135,11 +132,7 @@ public class PopupObjectMenu : MonoBehaviour
 
     private void CloseWindow()
     {
-        if (_coloring)
-        {
-            ColorObject();
-        }
-        Manager.Instance.SwitchShowWindow(EmptyObj.GetComponent<ClampPopup>().popup);
+        ManageWindow();
     }
 
     private void ColorObject()
@@ -147,6 +140,18 @@ public class PopupObjectMenu : MonoBehaviour
         Manager.Instance.SwitchShowWindow(Manager.Instance.fcp.transform.parent.gameObject);
 
         _coloring = !_coloring;
+    }
+
+    private void ManageWindow()
+    {
+        if (EmptyObj.GetComponent<ClampPopup>().popup.activeSelf)
+        {
+            if (_coloring)
+            {
+                ColorObject();
+            }
+        }
+        Manager.Instance.SwitchShowWindow(EmptyObj.GetComponent<ClampPopup>().popup);
     }
 
     private void Update()
