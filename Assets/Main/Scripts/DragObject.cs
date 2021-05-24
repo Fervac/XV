@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 public class DragObject : MonoBehaviour
 {
 	private bool _drag;
-	private float speed = 5f;
+	private float speed = 7f;
 	private void Update()
 	{
 		if (_drag)
@@ -21,20 +21,21 @@ public class DragObject : MonoBehaviour
 					transform.position = Vector3.Lerp(transform.position, hit.point, speed * Time.deltaTime);
 
 					transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, Input.GetAxis("Mouse ScrollWheel") * 100 + transform.eulerAngles.y, 0), Time.time * speed);
-
-					//transform.eulerAngles = new Vector3(0, Input.GetAxis("Mouse ScrollWheel") * 100 + transform.eulerAngles.y, 0);
 				}
+			}
+
+			if (Input.GetMouseButtonUp(1))
+			{
+				_drag = false;
 			}
 		}
 	}
 
-	public void OnMouseDown()
-	{
-		_drag = true;
-	}
-
-	public void OnMouseUp()
-	{
-		_drag = false;
-	}
+    private void OnMouseOver()
+    {
+        if (Input.GetMouseButtonDown(1))
+        {
+			_drag = true;
+        }
+    }
 }

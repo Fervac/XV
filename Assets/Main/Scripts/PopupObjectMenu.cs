@@ -152,13 +152,9 @@ public class PopupObjectMenu : MonoBehaviour
 
     private void ColorObject()
     {
-        //Manager.Instance.SwitchShowWindow(Manager.Instance.fcp.transform.parent.gameObject);
-
         Manager.Instance.SwitchShowWindow(EmptyObj.GetComponent<ClampPopup>().holderFcp);
 
         _coloring = !_coloring;
-
-        //popup color display
     }
 
     private void ManageWindow()
