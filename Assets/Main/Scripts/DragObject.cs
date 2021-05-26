@@ -19,10 +19,10 @@ public class DragObject : MonoBehaviour
 				if (hit.collider.CompareTag("Floor"))
 				{
 					transform.position = Vector3.Lerp(transform.position, hit.point, speed * Time.deltaTime);
-
-					transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, Input.GetAxis("Mouse ScrollWheel") * 100 + transform.eulerAngles.y, 0), Time.time * speed);
 				}
 			}
+
+			transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, Input.GetAxis("Mouse ScrollWheel") * 100 + transform.eulerAngles.y, 0), Time.time * speed);
 
 			if (Input.GetMouseButtonUp(1))
 			{
