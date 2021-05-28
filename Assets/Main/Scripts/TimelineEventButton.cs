@@ -90,9 +90,12 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         double R = System.Math.Round(limitR.transform.position.x, 2) - System.Math.Round(limitL.transform.position.x, 2);
 
         float width = this.gameObject.GetComponent<RectTransform>().sizeDelta.x;
-        //double startPos = (this.start / Manager.Instance.GetDuration()) * R;
-        double startPos = width * start;
-        this.transform.position = new Vector3((float)startPos + this.transform.position.x, this.transform.position.y, this.transform.position.z);
+
+        float lineWidth = this.transform.parent.transform.parent.GetComponent<TimelineEvent>().timelineObject.GetComponent<RectTransform>().sizeDelta.x;
+        float durValue = (1) / Manager.Instance.timeline.duration;
+        double startPos = (lineWidth * durValue) * start;
+       
+        this.transform.position = new Vector3((float)startPos + limitL.transform.position.x, this.transform.position.y, this.transform.position.z);
     }
 
     private bool UpdateTimeParameters()
@@ -211,9 +214,11 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
                 return;
             }
             this.gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(lineWidth * (durValue), 30);
+
+            //print("New width : " + this.gameObject.GetComponent<RectTransform>().sizeDelta.x);
         }
         this.duration = _event.duration;
-        print(start + " " + end + " " + duration);
+        //print(start + " " + end + " " + duration);
 
         UpdatePositionByTime();
     }

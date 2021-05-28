@@ -19,6 +19,8 @@ public class ModelManager : MonoBehaviour
     private bool angleSet = false;
     private float angle = 0.0f;
 
+    private float takeDelta = 0.0f;
+
     void Start()
     {
         isMoving = false;
@@ -129,10 +131,12 @@ public class ModelManager : MonoBehaviour
                 isRotating = true;
                 break;
             case actionType.TAKE:
+                isMoving = true;
                 isTaking = true;
                 isUsing = false;
                 break;
             case actionType.USE:
+                isMoving = true;
                 isUsing = true;
                 isTaking = false;
                 break;
@@ -141,6 +145,10 @@ public class ModelManager : MonoBehaviour
         }
         if (isMoving)
             Move();
+        if (isTaking)
+            Take();
+        if (isUsing)
+            Use();
     }
 
     #region Animation Manager
@@ -184,48 +192,26 @@ public class ModelManager : MonoBehaviour
         }
     }
 
-    /*public void Rotate()
+    public void Take()
     {
-        if (Manager.Instance.GetTimeCursor() < timePos)
-            moveDelta -= -Manager.Instance.GetTimeCursor() + timePos;
-        else
-            moveDelta += Manager.Instance.GetTimeCursor() - timePos;
-        //Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / current.duration);
-        
-        Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / current.duration);
+        takeDelta = Manager.Instance.GetTimeCursor() - current.start;
         // Animate model
+        if (!items.Contains(current.object_target))
+            items.Add(current.object_target);
 
-        this.transform.position = position;
-        // Move stuff (and rotate stuff ?)
-        if (moveDelta >= current.duration || moveDelta <= 0.0f)
-        {
-            moveDelta = 0.0f;
-            isMoving = false;
-        }
-        timePos = Manager.Instance.GetTimeCursor();
-    }*/
-
-    /*public void Take()
-    {
-        takeDelta += Manager.Instance.GetTimeCursor() - timePos;
-        // Animate model
-
+        current.object_target.transform.localScale = Vector3.Lerp(new Vector3(1f, 1f, 1f), new Vector3(0f, 0f, 0f), takeDelta);
         // Take stuff
         if (takeDelta >= current.duration)
         {
-            items.Add(current.object_target);
-            current.object_target.transform.localScale = new Vector3(0, 0, 0); // TODO : find other way to hide it | Maybe just `activeSelf = false`
             takeDelta = 0.0f;
             isTaking = false;
         }
-        timePos = Manager.Instance.GetTimeCursor();
     }
 
     public void Use()
     {
         // Use
-        timePos = Manager.Instance.GetTimeCursor();
-    }*/
+    }
     #endregion
 
     void Update()

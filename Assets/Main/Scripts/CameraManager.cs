@@ -8,6 +8,13 @@ using UnityEngine.EventSystems;
 
 }*/
 
+public enum overlayType
+{
+    MOVE,
+    TAKE,
+    MOUNT
+}
+
 public class CameraManager : MonoBehaviour
 {
     public float mainSpeed = 100.0f; //regular speed
@@ -17,7 +24,7 @@ public class CameraManager : MonoBehaviour
     public float rotationModifier = 1f;
 
     public bool overlay = false;
-    //public int overlayStyle = 0;
+    public overlayType overlay_type = 0;
     public GameObject _operator = null;
 
     private float overlayTimer = 0.0f;
@@ -76,11 +83,12 @@ public class CameraManager : MonoBehaviour
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out hit, 100.0f))
         {
+
+            endpoint = hit.point;
             if (hit.collider.CompareTag("Floor"))
-            {
-                endpoint = hit.point;
                 valid = true;
-            }
+            else if (hit.collider.gameObject != null && overlay_type == overlayType.MOUNT || overlay_type == overlayType.TAKE)
+                valid = true;
             else
                 valid = false;
             if (Input.GetKeyDown(KeyCode.Escape))
@@ -94,6 +102,10 @@ public class CameraManager : MonoBehaviour
             if (Input.GetMouseButtonDown(0) && valid)
             {
                 _operator.GetComponent<PopupObjectMenu>().endpoint = endpoint;
+                if (overlay_type == overlayType.MOUNT)
+                    _operator.GetComponent<PopupObjectMenu>().mountTarget = hit.collider.gameObject;
+                else if (overlay_type == overlayType.TAKE)
+                    _operator.GetComponent<PopupObjectMenu>().takeTarget = hit.collider.gameObject;
                 overlay = false;
                 _operator = null;
             }

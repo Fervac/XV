@@ -509,13 +509,26 @@ public class Timeline : MonoBehaviour
 
     #region Parameter Update Functions
 
+    private void UpdateTimelines()
+    {
+        foreach (GameObject lines in objects_event)
+        {
+            TimelineEvent _event = lines.GetComponent<TimelineEvent>();
+            _event.UpdateTimeline();
+        }
+    }
+
     public void SetDuration(float _duration)
     {
         isPlaying = false;
 
-        duration = _duration;
-        timeDuration.text = duration.ToString();
-        UpdateOverview();
+        if (duration != _duration)
+        {
+            duration = _duration;
+            timeDuration.text = duration.ToString();
+            UpdateTimelines();
+            UpdateOverview();
+        }
     }
 
     public void UpdateDuration(string new_duration)
@@ -529,9 +542,14 @@ public class Timeline : MonoBehaviour
         }
         if (timeCursor > float.Parse(new_duration))
             timeCursor = int.Parse(new_duration);
-        duration = int.Parse(new_duration);
-        UpdateCursorView();
-        UpdateOverview();
+        float _duration = int.Parse(new_duration);
+        if (duration != _duration)
+        {
+            duration = _duration;
+            UpdateTimelines();
+            UpdateCursorView();
+            UpdateOverview();
+        }
     }
 
     public void UpdateCursor(float value)

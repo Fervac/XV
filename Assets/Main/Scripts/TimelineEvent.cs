@@ -85,6 +85,8 @@ public class TimelineEvent : MonoBehaviour
             eventList.Remove(eventButton);
         if (eventList.Count == 0)
             DeleteActor();
+        else
+            UpdateEvents();
     }
 
     public void DeleteActor()
@@ -101,10 +103,25 @@ public class TimelineEvent : MonoBehaviour
     }
 
     /*
+     * Update events when one is moved to avoid overlap and error
+     * Update start time or delete event if placing is not possible anymore
+     */
+    public void UpdateEvents()
+    {
+        // Correct start position of each actions
+        actor.UpdateActions();
+    }
+
+    /*
      * Update event buttons width and position when the timeline duration change
      */
     public void UpdateTimeline()
     {
+        foreach (GameObject _event in eventList)
+        {
+            TimelineEventButton btn = _event.GetComponent<TimelineEventButton>();
+            btn.UpdateEvent();
+        }
     }
 
     /*

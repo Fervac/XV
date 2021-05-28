@@ -42,6 +42,7 @@ public class Manager : MonoBehaviour
     public Material GhostMat;
     public FlexibleColorPicker fcp;
 
+    private bool popup = true;
 
     private void Start()
     {
@@ -58,6 +59,12 @@ public class Manager : MonoBehaviour
     #endregion
 
     #region ObjectManagement
+
+    public void DeleteFromLoadedList(GameObject obj)
+    {
+        if (loadedObjects.Contains(obj))
+            loadedObjects.Remove(obj);
+    }
 
     public GameObject AddToLoadedList(GameObject prefab)
     {
@@ -86,6 +93,7 @@ public class Manager : MonoBehaviour
 
                 tmp.transform.eulerAngles = _eulers;
                 tmp.transform.SetParent(ObjetParent.transform);
+                AddToLoadedList(tmp);
             }
         }
     }
@@ -120,6 +128,20 @@ public class Manager : MonoBehaviour
         box.size = bounds.extents * 2;
         // Disable box collider before click is released
         box.enabled = false;
+    }
+
+    public void TogglePopUp(bool force = false, bool state = false)
+    {
+        if (force)
+            popup = state;
+        else
+            popup = !popup;
+        foreach (GameObject obj in loadedObjects)
+        {
+            PopupObjectMenu _popup = obj.GetComponent<PopupObjectMenu>();
+            if (_popup)
+                _popup.clickable = popup;
+        }
     }
 
     #endregion
