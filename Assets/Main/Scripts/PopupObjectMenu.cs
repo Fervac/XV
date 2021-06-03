@@ -340,7 +340,6 @@ public class PopupObjectMenu : MonoBehaviour
             float angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
             Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
 
-        print(manager);
             Action put = new Action(Manager.Instance.timeline.actions.Count, 1f, 0f, 1f, actionType.PUT, this.gameObject, manager.itemsEver[0],
                 this.transform.position, _endpoint,
                 this.transform.eulerAngles, endEuler);

@@ -255,6 +255,7 @@ public class ActionActor
                 continue;
             }
             ++i;
+            Manager.Instance.timeline.PlayUntil(act.end);
             act.UpdateTransform(actions[i].end_pos, actions[i].end_forward);
         }
     }
@@ -409,6 +410,10 @@ public class Timeline : MonoBehaviour
                 return;
             }
             //if (action.type == actionType.MOVE) // TODO : Modify, each actionType will need to have pos and rot
+            /*
+             * If action.type == actionType.TAKE, we should check if there is ANY action with the target object.
+             * If there is, check is time is compatible, one object cannot be taken twice in the same time frame (and without being put on the ground).
+             */
             action.start_pos = GetActionStartPos(action, objects[i]);
             action.start = startTime;
             action.end = startTime + action.duration;
@@ -441,6 +446,11 @@ public class Timeline : MonoBehaviour
                 objects[i].ResetTransform();
                 objects.RemoveAt(i);
                 objects_event.RemoveAt(i);
+            }
+            else
+            {
+                objects[i].SortActions();
+                objects[i].UpdateActions();
             }
         }
         else
@@ -626,7 +636,7 @@ public class Timeline : MonoBehaviour
     /*
      * This function shall execute the animation till the current time cursor position
      */
-    public void PlayUntil()
+    public void PlayUntil(float timestamp = -1f)
     {
         if (isPlaying)
             return;
@@ -634,7 +644,7 @@ public class Timeline : MonoBehaviour
         foreach (GameObject _eventElem in objects_event)
         {
             TimelineEvent _event = _eventElem.GetComponent<TimelineEvent>();
-            _event.PlayUntil(timeCursor);
+            _event.PlayUntil(timestamp != -1f ? timestamp : timeCursor);
         }
     }
 
