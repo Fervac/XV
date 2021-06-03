@@ -7,6 +7,7 @@ public enum actionType
 {
     MOVE,
     TAKE,
+    PUT,
     USE,
     ROTATE
 }
@@ -120,6 +121,9 @@ public class Action
                 break;
             case actionType.TAKE:
                 name = "I";
+                break;
+            case actionType.PUT:
+                name = "P";
                 break;
             case actionType.USE:
                 name = "U";
@@ -325,6 +329,9 @@ public class Timeline : MonoBehaviour
         return firstTimePos;
     }
 
+    /*
+     * Function used to get correct position for the actions in ONE actor.
+     */
     private Vector3 GetActionStartPos(Action action, ActionActor actor)
     {
         Vector3 startpos = actor.object_operator.transform.position;
@@ -344,7 +351,7 @@ public class Timeline : MonoBehaviour
                 endForward = act.end_forward;
             }
         }
-        if (firstTimePos != 0.0f)
+        if (firstTimePos == 0.0f)
         {
             action.start_pos = actor.position;
             action.start_forward = actor.rotation;
@@ -401,8 +408,8 @@ public class Timeline : MonoBehaviour
                 print("Error, timeline is full");
                 return;
             }
-            if (action.type == actionType.MOVE) // TODO : Modify, each actionType will need to have pos and rot
-                action.start_pos = GetActionStartPos(action, objects[i]);
+            //if (action.type == actionType.MOVE) // TODO : Modify, each actionType will need to have pos and rot
+            action.start_pos = GetActionStartPos(action, objects[i]);
             action.start = startTime;
             action.end = startTime + action.duration;
         }
@@ -411,6 +418,7 @@ public class Timeline : MonoBehaviour
         actions.Add(action);
         objects[i].AddAction(action);
         objects[i].SortActions();
+        objects[i].UpdateActions();
         objects_event[i].GetComponent<TimelineEvent>().AddEvent(action);
     }
 

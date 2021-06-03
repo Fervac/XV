@@ -3,15 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-/*public enum overlayStyle
-{
-
-}*/
-
 public enum overlayType
 {
     MOVE,
     TAKE,
+    PUT,
     MOUNT
 }
 
@@ -85,15 +81,17 @@ public class CameraManager : MonoBehaviour
         {
 
             endpoint = hit.point;
-            if (hit.collider.CompareTag("Floor"))
+            if (hit.collider.CompareTag("Floor") && !(overlay_type == overlayType.MOUNT || overlay_type == overlayType.TAKE))
                 valid = true;
-            else if (hit.collider.gameObject != null && overlay_type == overlayType.MOUNT || overlay_type == overlayType.TAKE)
+            else if (!(hit.collider.CompareTag("Floor")) && hit.collider.gameObject != null && hit.collider.gameObject != _operator && (overlay_type == overlayType.MOUNT || overlay_type == overlayType.TAKE || overlay_type == overlayType.PUT))
                 valid = true;
             else
                 valid = false;
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 overlay = false;
+                Manager.Instance.TogglePopUp(true, true);
+                _operator.GetComponent<BoxCollider>().enabled = true;
                 _operator = null;
                 valid = false;
                 overlayTimer = 0.0f;
@@ -104,7 +102,7 @@ public class CameraManager : MonoBehaviour
                 _operator.GetComponent<PopupObjectMenu>().endpoint = endpoint;
                 if (overlay_type == overlayType.MOUNT)
                     _operator.GetComponent<PopupObjectMenu>().mountTarget = hit.collider.gameObject;
-                else if (overlay_type == overlayType.TAKE)
+                else if (overlay_type == overlayType.TAKE || overlay_type == overlayType.PUT)
                     _operator.GetComponent<PopupObjectMenu>().takeTarget = hit.collider.gameObject;
                 overlay = false;
                 _operator = null;

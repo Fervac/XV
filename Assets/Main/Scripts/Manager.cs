@@ -106,9 +106,7 @@ public class Manager : MonoBehaviour
         Bounds bounds = new Bounds(ghostObject.transform.position, Vector3.zero);
 
         foreach (Renderer renderer in ghostObject.GetComponentsInChildren<Renderer>())
-        {
             bounds.Encapsulate(renderer.bounds);
-        }
 
         Vector3 localCenter = bounds.center - ghostObject.transform.position;
         bounds.center = localCenter;

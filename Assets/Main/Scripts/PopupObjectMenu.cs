@@ -13,6 +13,7 @@ public class PopupObjectMenu : MonoBehaviour
     private GameObject moveButton;
     private GameObject mountButton;
     private GameObject takeButton;
+    private GameObject putButton;
     private GameObject colorButton;
     private GameObject closeButton;
     private InputField nameField;
@@ -22,6 +23,9 @@ public class PopupObjectMenu : MonoBehaviour
     private bool _coloring = false;
 
     public bool clickable = true;
+
+    private ModelManager manager = null;
+    private bool takeState = true;
 
     #region Camera parameters
     private Vector3 _endpoint = new Vector3(0, 0, 0);
@@ -101,9 +105,11 @@ public class PopupObjectMenu : MonoBehaviour
         moveButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "MoveButton").gameObject;
         mountButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "MountButton").gameObject;
         takeButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "TakeButton").gameObject;
+        putButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "PutButton").gameObject;
         colorButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "ColorButton").gameObject;
         closeButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "CloseButton").gameObject;
         nameField = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "NameField").gameObject.GetComponent<InputField>();
+
 
         OnChangeEndPoint += OnChangeEndPointHandler;
         OnChangeMount += OnChangeMountHandler;
@@ -112,7 +118,10 @@ public class PopupObjectMenu : MonoBehaviour
 
     private void OnChangeEndPointHandler(Vector3 point)
     {
-        MoveObjectAction(point);
+        if (Camera.main.GetComponent<CameraManager>().overlay_type == overlayType.PUT)
+            PutObjectAction(point, null);
+        else
+            MoveObjectAction(point);
     }
 
     private void OnChangeMountHandler(Vector3 point, GameObject _mount)
@@ -132,12 +141,17 @@ public class PopupObjectMenu : MonoBehaviour
         moveButton.GetComponent<Button>().onClick.AddListener(() => MoveObject());
         mountButton.GetComponent<Button>().onClick.AddListener(() => MountObject());
         takeButton.GetComponent<Button>().onClick.AddListener(() => TakeObject());
+        putButton.GetComponent<Button>().onClick.AddListener(() => PutObject());
         colorButton.GetComponent<Button>().onClick.AddListener(() => ColorObject());
         closeButton.GetComponent<Button>().onClick.AddListener(() => CloseWindow());
 
         nameField.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
         nameTag = this.gameObject.name;
         nameField.text = nameTag;
+
+        manager = this.GetComponent<ModelManager>();
+        takeState = true;
+        putButton.SetActive(false);
     }
 
     private void ValueChangeCheck()
@@ -162,6 +176,7 @@ public class PopupObjectMenu : MonoBehaviour
         moveButton.GetComponent<Button>().onClick.RemoveListener(() => MoveObject());
         mountButton.GetComponent<Button>().onClick.RemoveListener(() => MountObject());
         takeButton.GetComponent<Button>().onClick.RemoveListener(() => TakeObject());
+        putButton.GetComponent<Button>().onClick.RemoveListener(() => PutObject());
         colorButton.GetComponent<Button>().onClick.RemoveListener(() => ColorObject());
         OnChangeEndPoint -= OnChangeEndPointHandler;
         OnChangeMount -= OnChangeMountHandler;
@@ -176,6 +191,10 @@ public class PopupObjectMenu : MonoBehaviour
         Destroy(this.gameObject);
     }
 
+    #region Actions handlers
+
+    #region Move action
+
     private void MoveObject()
     {
         Manager.Instance.TogglePopUp(true, false);
@@ -187,6 +206,7 @@ public class PopupObjectMenu : MonoBehaviour
         Camera.main.GetComponent<CameraManager>().overlay_type = overlayType.MOVE;
 
         this.gameObject.GetComponent<BoxCollider>().enabled = false;
+        CloseWindow();
     }
 
     private void MoveObjectAction(Vector3 point)
@@ -211,6 +231,9 @@ public class PopupObjectMenu : MonoBehaviour
         CloseWindow();
     }
 
+    #endregion
+    #region Mount action
+
     private void MountObject()
     {
         Manager.Instance.TogglePopUp(true, false);
@@ -219,10 +242,19 @@ public class PopupObjectMenu : MonoBehaviour
         Camera.main.GetComponent<CameraManager>().overlay_type = overlayType.MOUNT;
 
         this.gameObject.GetComponent<BoxCollider>().enabled = false;
+        CloseWindow();
     }
 
     private void MountObjectAction(Vector3 point, GameObject _mount)
     {
+
+        if (Camera.main.GetComponent<CameraManager>().overlay_type != overlayType.MOUNT)
+        {
+            this.gameObject.GetComponent<BoxCollider>().enabled = true;
+            Manager.Instance.TogglePopUp(true, true);
+            CloseWindow();
+            return;
+        }
         if (_mount != null)
         {
             Vector3 dir = Vector3.Normalize(_endpoint - transform.position);
@@ -239,6 +271,9 @@ public class PopupObjectMenu : MonoBehaviour
         CloseWindow();
     }
 
+    #endregion
+    #region Take action
+
     private void TakeObject()
     {
         Manager.Instance.TogglePopUp(true, false);
@@ -247,10 +282,18 @@ public class PopupObjectMenu : MonoBehaviour
         Camera.main.GetComponent<CameraManager>().overlay_type = overlayType.TAKE;
 
         this.gameObject.GetComponent<BoxCollider>().enabled = false;
+        CloseWindow();
     }
 
     private void TakeObjectAction(Vector3 point, GameObject _take)
     {
+        if (Camera.main.GetComponent<CameraManager>().overlay_type != overlayType.TAKE)
+        {
+            this.gameObject.GetComponent<BoxCollider>().enabled = true;
+            Manager.Instance.TogglePopUp(true, true);
+            CloseWindow();
+            return;
+        }
         if (_take != null)
         {
             Vector3 dir = Vector3.Normalize(_endpoint - transform.position);
@@ -261,11 +304,56 @@ public class PopupObjectMenu : MonoBehaviour
                 this.transform.position, _endpoint,
                 this.transform.eulerAngles, endEuler);
             Manager.Instance.timeline.AddAction(take, this.gameObject);
+            manager.itemsEver.Add(_take);
         }
         this.gameObject.GetComponent<BoxCollider>().enabled = true;
         Manager.Instance.TogglePopUp(true, true);
         CloseWindow();
     }
+
+    #endregion
+    #region Put action
+
+    private void PutObject()
+    {
+        Manager.Instance.TogglePopUp(true, false);
+        Camera.main.GetComponent<CameraManager>()._operator = this.gameObject;
+        Camera.main.GetComponent<CameraManager>().overlay = true;
+        Camera.main.GetComponent<CameraManager>().overlay_type = overlayType.PUT;
+
+        this.gameObject.GetComponent<BoxCollider>().enabled = false;
+        CloseWindow();
+    }
+
+    private void PutObjectAction(Vector3 point, GameObject _take)
+    {
+        if (Camera.main.GetComponent<CameraManager>().overlay_type != overlayType.PUT)
+        {
+            this.gameObject.GetComponent<BoxCollider>().enabled = true;
+            Manager.Instance.TogglePopUp(true, true);
+            CloseWindow();
+            return;
+        }
+        /*if (_take != null)
+        {*/
+            Vector3 dir = Vector3.Normalize(_endpoint - transform.position);
+            float angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
+            Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
+
+        print(manager);
+            Action put = new Action(Manager.Instance.timeline.actions.Count, 1f, 0f, 1f, actionType.PUT, this.gameObject, manager.itemsEver[0],
+                this.transform.position, _endpoint,
+                this.transform.eulerAngles, endEuler);
+            Manager.Instance.timeline.AddAction(put, this.gameObject);
+            manager.itemsEver.Remove(manager.itemsEver[0]);
+        //}
+        this.gameObject.GetComponent<BoxCollider>().enabled = true;
+        Manager.Instance.TogglePopUp(true, true);
+        CloseWindow();
+    }
+
+    #endregion
+    #endregion
 
     private void RotateObject()
     {
@@ -309,6 +397,19 @@ public class PopupObjectMenu : MonoBehaviour
                     mat.SetColor("_Color", EmptyObj.GetComponent<ClampPopup>().fcp.color);
                 }
             }
+        }
+
+        if (manager && manager.itemsEver.Count > 0 && takeState)
+        {
+            takeState = false;
+            putButton.SetActive(!takeState);
+            takeButton.SetActive(takeState);
+        }
+        else if (manager && manager.itemsEver.Count == 0 && !takeState)
+        {
+            takeState = true;
+            putButton.SetActive(!takeState);
+            takeButton.SetActive(takeState);
         }
     }
 }

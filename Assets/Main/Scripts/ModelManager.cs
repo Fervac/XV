@@ -4,9 +4,12 @@ using UnityEngine;
 
 public class ModelManager : MonoBehaviour
 {
+    public List<GameObject> itemsEver = new List<GameObject>();
+    public GameObject mountEver = null;
 
     public List<GameObject> items;
-    public GameObject mount;
+    private GameObject lastItem = null;
+    public GameObject mount = null;
 
     public bool isMoving { get; set; }
     public bool isRotating { get; set; }
@@ -20,6 +23,14 @@ public class ModelManager : MonoBehaviour
     private float angle = 0.0f;
 
     private float takeDelta = 0.0f;
+    private float useDelta = 0.0f;
+
+    private float takeMoveDurationDenom = 5f;
+
+    public Vector3 init_pos;
+    public Vector3 init_rot;
+
+    public GameObject init_parent;
 
     void Start()
     {
@@ -33,6 +44,10 @@ public class ModelManager : MonoBehaviour
         mount = null;
         items = new List<GameObject>();
         SetCorrectOrientation();
+
+        init_pos = this.transform.position;
+        init_rot = this.transform.eulerAngles;
+        init_parent = this.transform.parent.gameObject;
     }
 
     public void ResetVariables()
@@ -44,6 +59,8 @@ public class ModelManager : MonoBehaviour
         isMoving = false;
         angleSet = false;
     }
+
+    #region Setup (orientation and bounds) functions
 
     private void SetCorrectOrientation()
     {
@@ -92,6 +109,8 @@ public class ModelManager : MonoBehaviour
         return bounds;
     }
 
+    #endregion
+
     private bool CompleteAction(Action action)
     {
         if (action.start > Manager.Instance.GetTimeCursor())
@@ -102,6 +121,14 @@ public class ModelManager : MonoBehaviour
             {
                 case actionType.MOVE:
                     this.transform.position = action.end_pos;
+                    break;
+                case actionType.TAKE:
+                    this.transform.position = action.end_pos;
+                    action.object_target.transform.localScale = new Vector3(0f, 0f, 0f);
+                    break;
+                case actionType.PUT:
+                    this.transform.position = action.end_pos;
+                    action.object_target.transform.localScale = new Vector3(1f, 1f, 1f);
                     break;
                 default:
                     break;
@@ -124,36 +151,23 @@ public class ModelManager : MonoBehaviour
         switch (action.type)
         {
             case actionType.MOVE:
-                isMoving = true;
-                isTaking = false;
+                Move();
                 break;
             case actionType.ROTATE:
-                isRotating = true;
                 break;
             case actionType.TAKE:
-                isMoving = true;
-                isTaking = true;
-                isUsing = false;
+                Take();
+                break;
+            case actionType.PUT:
+                Put();
                 break;
             case actionType.USE:
-                isMoving = true;
-                isUsing = true;
-                isTaking = false;
+                Use();
                 break;
             default:
                 return;
         }
-        if (isMoving)
-            Move();
-        if (isTaking)
-            Take();
-        if (isUsing)
-            Use();
     }
-
-    #region Animation Manager
-
-    #endregion
 
     #region Animation Functions
 
@@ -192,15 +206,60 @@ public class ModelManager : MonoBehaviour
         }
     }
 
+    /*
+     * Use to take an object from world to inventory
+     */
     public void Take()
     {
         takeDelta = Manager.Instance.GetTimeCursor() - current.start;
-        // Animate model
-        if (!items.Contains(current.object_target))
-            items.Add(current.object_target);
 
-        current.object_target.transform.localScale = Vector3.Lerp(new Vector3(1f, 1f, 1f), new Vector3(0f, 0f, 0f), takeDelta);
-        // Take stuff
+        // The object should move till its near the target
+        // then we should perform the "take" animation.
+        // For the moment, we say that the take animation is one thenth of the action duration, the rest being the approch
+        if (takeDelta < current.duration - (current.duration / takeMoveDurationDenom))
+        {
+            if (!Vector3.Equals(current.object_target.transform.localScale, new Vector3(1, 1, 1)))
+            {
+                current.object_target.transform.localScale = new Vector3(1, 1, 1);
+                if (items.Contains(current.object_target))
+                {
+                    items.Remove(current.object_target);
+                    current.object_target.transform.SetParent(GameObject.Find("Env/Objects").transform);
+                }
+            }
+            if (!angleSet)
+            {
+                Vector3 dir = Vector3.Normalize(current.object_target.transform.position - transform.position);
+                angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
+                Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
+                angleSet = true;
+            }
+            float angleDelta = Mathf.Lerp(0, angle, takeDelta / (0.15f));
+            if (angleDelta != 0.0f || angleDelta != angle)
+            {
+                transform.eulerAngles = new Vector3(current.start_forward.x,
+                    current.start_forward.y + angleDelta,
+                    current.start_forward.z);
+            }
+
+            Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, takeDelta / (current.duration - (current.duration / takeMoveDurationDenom)));
+            this.transform.position = position;
+        }
+        else
+        {
+            // Current animation is to scale down the object we take.
+            // Another one could be of putting the target onto the operator ?
+            float scaleDelta = current.duration - takeDelta;
+            current.object_target.transform.localScale = Vector3.Lerp(new Vector3(0f, 0f, 0f), new Vector3(1f, 1f, 1f), scaleDelta / ((current.duration / takeMoveDurationDenom)));
+            if ((scaleDelta / ((current.duration / takeMoveDurationDenom))) <= 0.02f)
+                if (!items.Contains(current.object_target))
+                {
+                    items.Add(current.object_target);
+                    current.object_target.transform.SetParent(this.transform);
+                    current.object_target.transform.position = this.transform.position;
+                }
+        }
+
         if (takeDelta >= current.duration)
         {
             takeDelta = 0.0f;
@@ -208,9 +267,111 @@ public class ModelManager : MonoBehaviour
         }
     }
 
+    /*
+     * Use to put an object in inventory somewhere in the world
+     */
+    public void Put()
+    {
+        takeDelta = Manager.Instance.GetTimeCursor() - current.start;
+
+        if (takeDelta < current.duration - (current.duration / takeMoveDurationDenom))
+        {
+            if (items.Count < 1)
+            {
+                items.Add(lastItem);
+                lastItem.transform.SetParent(this.transform);
+            }
+            if (!angleSet)
+            {
+                angle = current.angle;
+                angleSet = true;
+            }
+            float angleDelta = Mathf.Lerp(0, angle, takeDelta / (0.15f));
+            if (angleDelta != 0.0f || angleDelta != angle)
+            {
+                transform.eulerAngles = new Vector3(current.start_forward.x,
+                    current.start_forward.y + angleDelta,
+                    current.start_forward.z);
+            }
+
+            Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, takeDelta / (current.duration - (current.duration / takeMoveDurationDenom)));
+            this.transform.position = position;
+        }
+        else if (items.Count > 0)
+        {
+            GameObject item = items[0];
+            float scaleDelta = current.duration - takeDelta;
+            item.transform.localScale = Vector3.Lerp(new Vector3(1f, 1f, 1f), new Vector3(0f, 0f, 0f), scaleDelta / ((current.duration / takeMoveDurationDenom)));
+            if ((scaleDelta / ((current.duration / takeMoveDurationDenom))) <= 0.02f)
+                if (items.Contains(item))
+                {
+                    current.object_target.transform.SetParent(GameObject.Find("Env/Objects").transform);
+                    items.Remove(item);
+                    lastItem = item;
+                }
+        }
+
+        if (takeDelta >= current.duration)
+        {
+            takeDelta = 0.0f;
+            isTaking = false;
+        }
+    }
+
+    /*
+     * Rather than use it is the action of mouting an object for the moment.
+     * Use or mount. By mounting, the main object will be able to "ride" the target.
+     * This means that the user will move and interact with the world through the mount.
+     */
     public void Use()
     {
-        // Use
+        useDelta = Manager.Instance.GetTimeCursor() - current.start;
+
+        // The object should move till its near the target
+        // then we should perform the "take" animation.
+        // For the moment, we say that the take animation is one thenth of the action duration, the rest being the approch
+        if (useDelta < current.duration - (current.duration / 2f))
+        {
+            if (this.mount == current.object_target)
+            {
+                this.mount = null;
+                current.object_target.transform.SetParent(init_parent.transform);
+                current.object_target.GetComponent<PopupObjectMenu>().clickable = true;
+                current.object_target.GetComponent<BoxCollider>().enabled = true;
+            }
+
+            if (!angleSet)
+            {
+                Vector3 dir = Vector3.Normalize(current.object_target.transform.position - transform.position);
+                float angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
+                Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
+                angleSet = true;
+            }
+            float angleDelta = Mathf.Lerp(0, angle, useDelta / (0.15f));
+            if (angleDelta != 0.0f || angleDelta != angle)
+            {
+                transform.eulerAngles = new Vector3(current.start_forward.x,
+                    current.start_forward.y + angleDelta,
+                    current.start_forward.z);
+            }
+
+            Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, useDelta / (current.duration - (current.duration / 2f)));
+            this.transform.position = position;
+        }
+        else
+        {
+            if (this.mount != current.object_target)
+                this.mount = current.object_target;
+            current.object_target.transform.SetParent(this.transform);
+            current.object_target.GetComponent<PopupObjectMenu>().clickable = false;
+            current.object_target.GetComponent<BoxCollider>().enabled = false;
+        }
+
+        if (useDelta >= current.duration)
+        {
+            useDelta = 0.0f;
+            isTaking = false;
+        }
     }
     #endregion
 
