@@ -25,12 +25,12 @@ public class ModelManager : MonoBehaviour
     private float takeDelta = 0.0f;
     private float useDelta = 0.0f;
 
-    private float takeMoveDurationDenom = 5f;
-
     public Vector3 init_pos;
     public Vector3 init_rot;
-
     public GameObject init_parent;
+
+    private List<Vector3> pos_hist = new List<Vector3>();
+    private List<Vector3> rot_hist = new List<Vector3>();
 
     void Start()
     {
@@ -146,7 +146,7 @@ public class ModelManager : MonoBehaviour
      */
     public void PlayAction(Action action)
     {
-        if (action != current)
+        if (action != current || Manager.Instance.GetTimeCursor() == 0.0f)
             ResetVariables();
         current = action;
         if (action == null || CompleteAction(action))
@@ -171,6 +171,30 @@ public class ModelManager : MonoBehaviour
                 return;
         }
     }
+
+    #region Useful Functions
+
+    public void UpdateTransformData(Vector3 npos, Vector3 neuler)
+    {
+        pos_hist.Add(npos);
+        rot_hist.Add(neuler);
+    }
+
+    public void DeleteTransformData(int index = -1)
+    {
+        if (index == -1)
+        {
+            pos_hist.RemoveAt(pos_hist.Count - 1);
+            rot_hist.RemoveAt(rot_hist.Count - 1);
+        }
+        else if (index >= 0 && (index < pos_hist.Count && index < rot_hist.Count))
+        {
+            pos_hist.RemoveAt(index);
+            rot_hist.RemoveAt(index);
+        }
+    }
+
+    #endregion
 
     #region Animation Functions
 
@@ -212,71 +236,54 @@ public class ModelManager : MonoBehaviour
     /*
      * Use to take an object from world to inventory
      * The action is composed of two step :
-     *      1 - Go to the target
-     *      2 - Take the target
+     *      1 - Go to the target (should not be present in inventory)
+     *      2 - Take the target (add into inventory)
+     *      
+     *  The main difficulty is to know where should be the target at X point. Playing the timeline/action is easy, rewind is harder.
      */
     public void Take()
     {
         takeDelta = Manager.Instance.GetTimeCursor() - current.start;
 
-        // The object should move till its near the target
-        // then we should perform the "take" animation.
-        // For the moment, we say that the take animation is one thenth of the action duration, the rest being the approch
-        if (takeDelta < current.duration - (current.duration / takeMoveDurationDenom))
+        if (!angleSet)
         {
-            // First we check the "state" of the object. If target scale isn't 1, we scale it to 1 and remove it from the item list.
-            // We also reset the transform parent.
+            Vector3 dir = Vector3.Normalize(current.end_pos - current.start_pos);
+            angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
+            Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
+            angleSet = true;
+        }
+        float angleDelta = Mathf.Lerp(0, angle, takeDelta / (0.15f));
+        if (angleDelta != 0.0f || angleDelta != angle)
+        {
+            transform.eulerAngles = new Vector3(current.start_forward.x,
+                current.start_forward.y + angleDelta,
+                current.start_forward.z);
+        }
+
+        Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, takeDelta / (current.duration - (current.duration / 2f)));
+        this.transform.position = position;
+        float scaleDelta = current.duration - takeDelta;
+        Vector3 scale = Vector3.Lerp(new Vector3(0f, 0f, 0f), new Vector3(1f, 1f, 1f), scaleDelta / ((current.duration / 2f)));
+        current.object_target.transform.localScale = scale;
+        if (takeDelta < (current.duration - (current.duration / 2f)))
+        {
+            current.object_target.transform.localScale = new Vector3(1, 1, 1);
+            current.object_target.transform.position = current.end_pos;
+            current.object_target.transform.SetParent(GameObject.Find("Env/Objects").transform);
+            //current.object_target.GetComponent<ModelManager>().UpdateTransformData(current.end_pos, current.object_target.transform.eulerAngles);
             if (items.Contains(current.object_target))
-            {
-                current.object_target.transform.localScale = new Vector3(1, 1, 1);
                 items.Remove(current.object_target);
-                current.object_target.transform.SetParent(GameObject.Find("Env/Objects").transform);
-            }
-
-            // We check if the angle is set. The angle is the y rotation to face the target
-            if (!angleSet)
-            {
-                Vector3 dir = Vector3.Normalize(current.object_target.transform.position - transform.position);
-                angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
-                Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
-                angleSet = true;
-            }
-
-            // We lerp the angle
-            float angleDelta = Mathf.Lerp(0, angle, takeDelta / (0.15f));
-            if (angleDelta != 0.0f || angleDelta != angle)
-            {
-                transform.eulerAngles = new Vector3(current.start_forward.x,
-                    current.start_forward.y + angleDelta,
-                    current.start_forward.z);
-            }
-
-            // We lerp the position
-            Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, takeDelta / (current.duration - (current.duration / takeMoveDurationDenom)));
-            this.transform.position = position;
         }
         else
         {
-            if (this.transform.position != current.end_pos)
-                this.transform.position = current.end_pos;
-            if (current.object_target.transform.position != current.end_pos)
-                current.object_target.transform.position = current.end_pos;
-            // Current animation is to scale down the object we take.
-            // Another one could be of putting the target onto the operator ?
-            float scaleDelta = current.duration - takeDelta;
-            current.object_target.transform.localScale = Vector3.Lerp(new Vector3(0f, 0f, 0f), new Vector3(1f, 1f, 1f), scaleDelta / ((current.duration / takeMoveDurationDenom)));
             if (!items.Contains(current.object_target))
             {
                 items.Add(current.object_target);
+                //current.object_target.GetComponent<ModelManager>().UpdateTransformData(current.end_pos, current.object_target.transform.eulerAngles );
+                current.object_target.transform.localScale = new Vector3(0, 0, 0);
+                current.object_target.transform.position = current.end_pos;
                 current.object_target.transform.SetParent(this.transform);
-                current.object_target.transform.position = this.transform.position;
             }
-        }
-
-        if (takeDelta >= current.duration)
-        {
-            takeDelta = 0.0f;
-            isTaking = false;
         }
     }
 
@@ -290,59 +297,44 @@ public class ModelManager : MonoBehaviour
     {
         takeDelta = Manager.Instance.GetTimeCursor() - current.start;
 
-        if (takeDelta < current.duration - (current.duration / takeMoveDurationDenom))
+        if (!angleSet)
         {
-            if (lastItem && !items.Contains(lastItem))
-            {
-                items.Add(lastItem);
-                lastItem.transform.SetParent(this.transform);
-                lastItem.transform.position = this.transform.position;
-                current.object_target.transform.localScale = new Vector3(0, 0, 0);
-            }
-            if (!angleSet)
-            {
-                angle = current.angle;
-                angleSet = true;
-            }
-            float angleDelta = Mathf.Lerp(0, angle, takeDelta / (0.15f));
-            if (angleDelta != 0.0f || angleDelta != angle)
-            {
-                transform.eulerAngles = new Vector3(current.start_forward.x,
-                    current.start_forward.y + angleDelta,
-                    current.start_forward.z);
-            }
+            Vector3 dir = Vector3.Normalize(current.end_pos - current.start_pos);
+            angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
+            Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
+            angleSet = true;
+        }
+        float angleDelta = Mathf.Lerp(0, angle, takeDelta / (0.15f));
+        if (angleDelta != 0.0f || angleDelta != angle)
+        {
+            transform.eulerAngles = new Vector3(current.start_forward.x,
+                current.start_forward.y + angleDelta,
+                current.start_forward.z);
+        }
 
-            Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, takeDelta / (current.duration - (current.duration / takeMoveDurationDenom)));
-            this.transform.position = position;
+        Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, takeDelta / (current.duration - (current.duration / 2f)));
+        this.transform.position = position;
+        float scaleDelta = current.duration - takeDelta;
+        Vector3 scale = Vector3.Lerp(new Vector3(1f, 1f, 1f), new Vector3(0f, 0f, 0f), scaleDelta / ((current.duration / 2f)));
+        current.object_target.transform.localScale = scale;
+        if (takeDelta < (current.duration - (current.duration / 2f)))
+        {
+            current.object_target.transform.localScale = new Vector3(0, 0, 0);
+            current.object_target.transform.position = current.start_pos;
+            current.object_target.transform.SetParent(this.transform);
+            if (!items.Contains(current.object_target))
+                items.Add(current.object_target);
         }
         else
         {
-            GameObject item = current.object_target;
-
-            if (this.transform.position != current.end_pos)
+            if (items.Contains(current.object_target))
             {
-                item.transform.position = this.transform.position;
-                item.transform.SetParent(GameObject.Find("Env/Objects").transform);
-                this.transform.position = current.end_pos;
+                items.Remove(current.object_target);
+                current.object_target.transform.localScale = new Vector3(1, 1, 1);
+                current.object_target.transform.position = current.end_pos;
+                current.object_target.transform.SetParent(GameObject.Find("Env/Objects").transform);
+                lastItem = current.object_target;
             }
-            if (item.transform.position != current.end_pos)
-                item.transform.position = current.end_pos;
-
-            float scaleDelta = current.duration - takeDelta;
-            item.transform.localScale = Vector3.Lerp(new Vector3(1f, 1f, 1f), new Vector3(0f, 0f, 0f), scaleDelta / ((current.duration / takeMoveDurationDenom)));
-            if (item && items.Contains(item)) // TODO : Find a good way to get into that if (change the condition to something more secure)
-            {
-                item.transform.position = this.transform.position;
-                item.transform.SetParent(GameObject.Find("Env/Objects").transform);
-                items.Remove(item);
-                lastItem = item;
-            }
-        }
-
-        if (takeDelta >= current.duration)
-        {
-            takeDelta = 0.0f;
-            isTaking = false;
         }
     }
 

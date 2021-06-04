@@ -195,6 +195,8 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         actor.SortActions();
         actor.UpdateActions();
 
+        //Manager.Instance.timeline.UpdateCursor(_event.start / Manager.Instance.timeline.duration);
+
         // Disable startTime tooltip
         GameObject toolTip = Manager.Instance.GetEventTooltip();
         toolTip.SetActive(false);

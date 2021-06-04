@@ -31,6 +31,9 @@ public class Action
     public Vector3 start_pos;
     public Vector3 end_pos;
 
+    public Vector3 target_pos;
+    public Vector3 target_rot;
+
     public Vector3 start_forward;
     public Vector3 end_forward;
 
@@ -252,11 +255,13 @@ public class ActionActor
             if (act == actions[0])
             {
                 act.UpdateTransform(position, rotation);
+                Manager.Instance.timeline.GetTargetPosition(act, this);
                 continue;
             }
             ++i;
-            Manager.Instance.timeline.PlayUntil(act.end);
+            //Manager.Instance.timeline.PlayUntil(act.end); Not useful as it's not modifying the time cursor which is used in model manager ;(
             act.UpdateTransform(actions[i].end_pos, actions[i].end_forward);
+            Manager.Instance.timeline.GetTargetPosition(act, this);
         }
     }
 }
@@ -340,7 +345,7 @@ public class Timeline : MonoBehaviour
         float endTimePos = firstTimePos + action.duration;
         Vector3 endForward = action.start_forward;
 
-        foreach (Action act in actor.actions)
+        foreach (Action act in actor.actions) // Update function to check all actions instead of only one line ?
         {
             if ((act.start == firstTimePos
                 || (act.start > firstTimePos && act.start < endTimePos)
@@ -360,6 +365,37 @@ public class Timeline : MonoBehaviour
         if (startpos != action.start_pos)
             action.UpdateTransform(startpos, endForward);
         return startpos;
+    }
+
+    /*
+     * This functions is used to get the updated position of the target object for TAKE/USE actions
+     */
+    public void GetTargetPosition(Action action, ActionActor actor)
+    {
+        if (action.type != actionType.TAKE /*&& action.type != actionType.PUT */&& action.type != actionType.USE)
+            return;
+
+        int type = 0;
+        float timePos = 0.0f;
+        GameObject target = action.object_target;
+        Vector3 npos = action.end_pos;
+        if (!target)
+            return;
+        foreach (Action act in actions) // Can be expensive if there is a lot of actions in the timeline (but won't impact performence at our level)
+        {
+            if (act.object_target == null && act.object_operator != target)
+                continue;
+            if (act.object_operator == target || act.object_target == target)
+            {
+                type = act.object_operator == target ? 0 : 1;
+                if (timePos <= act.end && act.end <= action.start)
+                {
+                    npos = act.end_pos;
+                    timePos = act.end;
+                }
+            }
+        }
+        action.end_pos = npos;
     }
 
     /*
@@ -413,10 +449,12 @@ public class Timeline : MonoBehaviour
             /*
              * If action.type == actionType.TAKE, we should check if there is ANY action with the target object.
              * If there is, check is time is compatible, one object cannot be taken twice in the same time frame (and without being put on the ground).
+             * And also update end_pos / start_pos of the action based on the target.
              */
             action.start_pos = GetActionStartPos(action, objects[i]);
             action.start = startTime;
             action.end = startTime + action.duration;
+            GetTargetPosition(action, objects[i]);
         }
 
         // Add action to the timeline
