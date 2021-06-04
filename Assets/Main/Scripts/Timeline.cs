@@ -264,6 +264,18 @@ public class ActionActor
             Manager.Instance.timeline.GetTargetPosition(act, this);
         }
     }
+
+    /*public bool isObjectTargeted(GameObject target)
+    {
+        if (actionCount < 1)
+            return false;
+        foreach (Action act in actions)
+        {
+            if (act.object_target == target)
+                return true;
+        }
+        return false;
+    }*/
 }
 
 #endregion
@@ -497,20 +509,65 @@ public class Timeline : MonoBehaviour
         }
     }
 
+    private void DeleteLinkedActions(GameObject actor)
+    {
+        GameObject foreign_obj = null;
+        List<Action> toDelete = new List<Action>();
+        List<TimelineEvent> toDeleteLine = new List<TimelineEvent>();
+
+        foreach (Action act in actions)
+        {
+            if (act.object_target != actor && act.object_operator != actor)
+                continue;
+            if (act.object_target == actor)
+            {
+                foreign_obj = objects_event.Find(x => x.GetComponent<TimelineEvent>().actor.object_operator == act.object_operator);
+                if (foreign_obj)
+                {
+                    toDeleteLine.Add(foreign_obj.GetComponent<TimelineEvent>());
+                    toDelete.Add(act);
+                }
+            }
+        }
+        for (int k = 0; k < toDelete.Count; k++)
+            toDeleteLine[k].DeleteEvent(null, toDelete[k]);
+    }
+
     public void DeleteActor(GameObject actor)
     {
         if (!actor)
             return;
         ActionActor aa = null;
-        GameObject obj = null;
+        GameObject obj = null, foreign_obj = null;
+        List<Action> toDelete = new List<Action>();
+        List<TimelineEvent> toDeleteLine = new List<TimelineEvent>();
 
         int i = objects.FindIndex(x => x.object_operator == actor);
         if (i == -1)
+        {
+            DeleteLinkedActions(actor);
             return;
+        }
         aa = objects[i];
         obj = objects_event.Find(x => x.GetComponent<TimelineEvent>().actor.object_operator == actor);
-        if (aa.actions.Count > 0)
-            obj.GetComponent<TimelineEvent>().DeleteEvent(null, aa.actions[0]);
+        foreach (Action act in actions)
+        {
+            if (act.object_target != actor && act.object_operator != actor)
+                continue;
+            if (act.object_target == actor)
+            {
+                foreign_obj = objects_event.Find(x => x.GetComponent<TimelineEvent>().actor.object_operator == act.object_operator);
+                toDeleteLine.Add(foreign_obj.GetComponent<TimelineEvent>());
+                toDelete.Add(act);
+            }
+            else if (act.object_operator == actor)
+            {
+                toDeleteLine.Add(obj.GetComponent<TimelineEvent>());
+                toDelete.Add(act);
+            }
+        }
+        for (int k = 0; k < toDelete.Count; k++)
+            toDeleteLine[k].DeleteEvent(null, toDelete[k]);
         DeleteActor(actor);
     }
 
