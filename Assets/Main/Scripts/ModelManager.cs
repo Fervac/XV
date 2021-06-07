@@ -133,6 +133,24 @@ public class ModelManager : MonoBehaviour
                     if (lastItem)
                         lastItem.transform.localScale = new Vector3(1f, 1f, 1f);
                     break;
+                case actionType.USE:
+                    /*if (mount)
+                    {
+                        action.object_target.transform.SetParent(init_parent.transform);
+                        action.object_target.GetComponent<PopupObjectMenu>().clickable = true;
+                        action.object_target.GetComponent<BoxCollider>().enabled = true;
+                        action.object_target.transform.position = action.end_pos;
+                        mount = null;
+                    }
+                    else if (!mount)
+                    {
+                        action.object_target.transform.SetParent(this.transform);
+                        action.object_target.GetComponent<PopupObjectMenu>().clickable = false;
+                        action.object_target.GetComponent<BoxCollider>().enabled = false;
+                        action.object_target.transform.position = action.end_pos;
+                        mount = action.object_target;
+                    }*/
+                    break;
                 default:
                     break;
             }
@@ -347,10 +365,75 @@ public class ModelManager : MonoBehaviour
     {
         useDelta = Manager.Instance.GetTimeCursor() - current.start;
 
-        // The object should move till its near the target
-        // then we should perform the "take" animation.
-        // For the moment, we say that the take animation is one thenth of the action duration, the rest being the approch
-        if (useDelta < current.duration - (current.duration / 2f))
+        if (!current.umount)
+        {
+            if (!angleSet)
+            {
+                Vector3 dir = Vector3.Normalize(current.end_pos - current.start_pos);
+                angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
+                Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
+                angleSet = true;
+            }
+            float angleDelta = Mathf.Lerp(0, angle, useDelta / (0.15f));
+            if (angleDelta != 0.0f || angleDelta != angle)
+            {
+                transform.eulerAngles = new Vector3(current.start_forward.x,
+                    current.start_forward.y + angleDelta,
+                    current.start_forward.z);
+            }
+
+            Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, useDelta / (current.duration - (current.duration / 2f)));
+            this.transform.position = position;
+        }
+        if (useDelta < (current.duration - (current.duration / 2f)))
+        {
+            /*
+             * Here we are in the interval where the model should be moving toward the target.
+             * We have to be aware of 2 cases.
+             *  - Mounting a object
+             *  - Unmounting a object
+             */
+            if (current.umount)
+            {
+                current.object_target.transform.SetParent(this.transform);
+                current.object_target.GetComponent<PopupObjectMenu>().clickable = false;
+                current.object_target.GetComponent<BoxCollider>().enabled = false;
+            }
+            else
+            {
+                this.mount = current.object_target;
+                this.mount.transform.SetParent(this.mount.GetComponent<ModelManager>().init_parent.transform);
+                this.mount.GetComponent<PopupObjectMenu>().clickable = true;
+                this.mount.GetComponent<BoxCollider>().enabled = true;
+            }
+        }
+        else
+        {
+            /*
+             * Here we are in the interval after the move. The mounting or unmounting should be done here.
+             */
+            if (current.umount)
+            {
+                if (this.mount)
+                {
+                    this.mount.transform.SetParent(this.mount.GetComponent<ModelManager>().init_parent.transform);
+                    this.mount.GetComponent<PopupObjectMenu>().clickable = true;
+                    this.mount.GetComponent<BoxCollider>().enabled = true;
+                    this.mount = null;
+                }
+            }
+            else
+            {
+                this.mount = current.object_target;
+                this.mount.transform.SetParent(this.transform);
+                this.mount.GetComponent<PopupObjectMenu>().clickable = false;
+                this.mount.GetComponent<BoxCollider>().enabled = false;
+            }
+        }
+
+        /*useDelta = Manager.Instance.GetTimeCursor() - current.start;
+
+        if (current.object_target && useDelta < current.duration - (current.duration / 2f))
         {
             if (this.mount == current.object_target)
             {
@@ -381,17 +464,22 @@ public class ModelManager : MonoBehaviour
         else
         {
             if (this.mount != current.object_target)
+            {
+                if (this.mount != null)
+                {
+                    this.mount.transform.SetParent(this.mount.GetComponent<ModelManager>().init_parent.transform);
+                    this.mount.GetComponent<PopupObjectMenu>().clickable = true;
+                    this.mount.GetComponent<BoxCollider>().enabled = true;
+                }
                 this.mount = current.object_target;
-            current.object_target.transform.SetParent(this.transform);
-            current.object_target.GetComponent<PopupObjectMenu>().clickable = false;
-            current.object_target.GetComponent<BoxCollider>().enabled = false;
-        }
-
-        if (useDelta >= current.duration)
-        {
-            useDelta = 0.0f;
-            isTaking = false;
-        }
+            }
+            if (current.object_target)
+            {
+                current.object_target.transform.SetParent(this.transform);
+                current.object_target.GetComponent<PopupObjectMenu>().clickable = false;
+                current.object_target.GetComponent<BoxCollider>().enabled = false;
+            }
+        }*/
     }
     #endregion
 

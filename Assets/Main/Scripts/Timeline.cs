@@ -42,6 +42,8 @@ public class Action
     public string name = "";
     public string notes = "";
 
+    public bool umount = false;
+
     #region Action Declaration
 
     public Action(int index, float duration, float start, float end, actionType type, GameObject object_operator, GameObject object_target = null)
@@ -182,6 +184,12 @@ public class Action
         this.end_forward = endEuler;
 
         this.start_pos = startpos;
+
+        if (this.type == actionType.USE && this.umount)
+        {
+            this.end_pos = startpos;
+        }
+        Debug.Log(this.type + ":" + this.start_pos + " -> " + this.end_pos);
     }
 }
 
@@ -244,13 +252,13 @@ public class ActionActor
     {
         int i = -1;
 
-        if (actions.Count >= 1)
+        /*if (actions.Count >= 1) // Why ? Not sure if we need to keep it
         {
             this.object_operator.transform.position = position;//actions[0].start_pos;
             this.object_operator.transform.eulerAngles = rotation;
-        }
+        }*/
 
-        foreach (Action act in actions)
+        foreach (Action act in actions) // Update to check for all actions in which the target or operator is the current actor
         {
             if (act == actions[0])
             {
@@ -260,6 +268,7 @@ public class ActionActor
             }
             ++i;
             //Manager.Instance.timeline.PlayUntil(act.end); Not useful as it's not modifying the time cursor which is used in model manager ;(
+            Debug.Log(actions[i].type + " : " + actions[i].end_pos);
             act.UpdateTransform(actions[i].end_pos, actions[i].end_forward);
             Manager.Instance.timeline.GetTargetPosition(act, this);
         }
@@ -357,8 +366,12 @@ public class Timeline : MonoBehaviour
         float endTimePos = firstTimePos + action.duration;
         Vector3 endForward = action.start_forward;
 
-        foreach (Action act in actor.actions) // Update function to check all actions instead of only one line ?
+        actionType test = 0;
+
+        foreach (Action act in actions)
         {
+            if (act.object_operator != action.object_operator && act.object_target != action.object_operator)
+                continue;
             if ((act.start == firstTimePos
                 || (act.start > firstTimePos && act.start < endTimePos)
                 || (act.start < firstTimePos && act.end > firstTimePos)))
@@ -367,8 +380,13 @@ public class Timeline : MonoBehaviour
                 endTimePos = firstTimePos + action.duration;
                 startpos = act.end_pos;
                 endForward = act.end_forward;
+                test = act.type;
+                //print(action.type + " | " + act.type);
             }
         }
+        /*print(firstTimePos);
+        print(startpos + " -> " + action.end_pos + " vs " + actor.position);
+        print(action.start_pos);*/
         if (firstTimePos == 0.0f)
         {
             action.start_pos = actor.position;
@@ -384,7 +402,7 @@ public class Timeline : MonoBehaviour
      */
     public void GetTargetPosition(Action action, ActionActor actor)
     {
-        if (action.type != actionType.TAKE /*&& action.type != actionType.PUT */&& action.type != actionType.USE)
+        if (action.type != actionType.TAKE /*&& action.type != actionType.PUT && action.type != actionType.USE*/)
             return;
 
         int type = 0;
@@ -489,6 +507,8 @@ public class Timeline : MonoBehaviour
             return;
         if (objects[i].actionCount >= 1)
         {
+            if (action.type == actionType.USE && action.umount)
+                objects[i].object_operator.GetComponent<ModelManager>().mountEver = action.object_target;
             actions.Remove(action);
             objects[i].DeleteAction(action);
             if (objects[i].actionCount == 0)
@@ -511,7 +531,7 @@ public class Timeline : MonoBehaviour
 
     private void DeleteLinkedActions(GameObject actor)
     {
-        GameObject foreign_obj = null;
+        GameObject obj = null;
         List<Action> toDelete = new List<Action>();
         List<TimelineEvent> toDeleteLine = new List<TimelineEvent>();
 
@@ -519,12 +539,12 @@ public class Timeline : MonoBehaviour
         {
             if (act.object_target != actor && act.object_operator != actor)
                 continue;
-            if (act.object_target == actor)
+            if (act.object_target == actor || act.object_operator == actor)
             {
-                foreign_obj = objects_event.Find(x => x.GetComponent<TimelineEvent>().actor.object_operator == act.object_operator);
-                if (foreign_obj)
+                obj = objects_event.Find(x => x.GetComponent<TimelineEvent>().actor.object_operator == act.object_operator);
+                if (obj)
                 {
-                    toDeleteLine.Add(foreign_obj.GetComponent<TimelineEvent>());
+                    toDeleteLine.Add(obj.GetComponent<TimelineEvent>());
                     toDelete.Add(act);
                 }
             }
@@ -537,38 +557,13 @@ public class Timeline : MonoBehaviour
     {
         if (!actor)
             return;
-        ActionActor aa = null;
-        GameObject obj = null, foreign_obj = null;
         List<Action> toDelete = new List<Action>();
         List<TimelineEvent> toDeleteLine = new List<TimelineEvent>();
 
         int i = objects.FindIndex(x => x.object_operator == actor);
-        if (i == -1)
-        {
-            DeleteLinkedActions(actor);
-            return;
-        }
-        aa = objects[i];
-        obj = objects_event.Find(x => x.GetComponent<TimelineEvent>().actor.object_operator == actor);
-        foreach (Action act in actions)
-        {
-            if (act.object_target != actor && act.object_operator != actor)
-                continue;
-            if (act.object_target == actor)
-            {
-                foreign_obj = objects_event.Find(x => x.GetComponent<TimelineEvent>().actor.object_operator == act.object_operator);
-                toDeleteLine.Add(foreign_obj.GetComponent<TimelineEvent>());
-                toDelete.Add(act);
-            }
-            else if (act.object_operator == actor)
-            {
-                toDeleteLine.Add(obj.GetComponent<TimelineEvent>());
-                toDelete.Add(act);
-            }
-        }
-        for (int k = 0; k < toDelete.Count; k++)
-            toDeleteLine[k].DeleteEvent(null, toDelete[k]);
-        DeleteActor(actor);
+        DeleteLinkedActions(actor);
+        if (i != -1)
+            DeleteActor(actor);
     }
 
     /*

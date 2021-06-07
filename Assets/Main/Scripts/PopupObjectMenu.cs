@@ -12,6 +12,7 @@ public class PopupObjectMenu : MonoBehaviour
     private GameObject rotateButton;
     private GameObject moveButton;
     private GameObject mountButton;
+    private GameObject unmountButton;
     private GameObject takeButton;
     private GameObject putButton;
     private GameObject colorButton;
@@ -26,6 +27,8 @@ public class PopupObjectMenu : MonoBehaviour
 
     private ModelManager manager = null;
     private bool takeState = true;
+
+    private bool mountState = true;
 
     #region Camera parameters
     private Vector3 _endpoint = new Vector3(0, 0, 0);
@@ -104,6 +107,7 @@ public class PopupObjectMenu : MonoBehaviour
         rotateButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "RotateButton").gameObject;
         moveButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "MoveButton").gameObject;
         mountButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "MountButton").gameObject;
+        unmountButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "UnmountButton").gameObject;
         takeButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "TakeButton").gameObject;
         putButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "PutButton").gameObject;
         colorButton = Extensions.Search(EmptyObj.GetComponent<ClampPopup>().popup.transform, "ColorButton").gameObject;
@@ -140,6 +144,7 @@ public class PopupObjectMenu : MonoBehaviour
         rotateButton.GetComponent<Button>().onClick.AddListener(() => RotateObject());
         moveButton.GetComponent<Button>().onClick.AddListener(() => MoveObject());
         mountButton.GetComponent<Button>().onClick.AddListener(() => MountObject());
+        unmountButton.GetComponent<Button>().onClick.AddListener(() => MountObject());
         takeButton.GetComponent<Button>().onClick.AddListener(() => TakeObject());
         putButton.GetComponent<Button>().onClick.AddListener(() => PutObject());
         colorButton.GetComponent<Button>().onClick.AddListener(() => ColorObject());
@@ -175,6 +180,7 @@ public class PopupObjectMenu : MonoBehaviour
         closeButton.GetComponent<Button>().onClick.RemoveListener(() => CloseWindow());
         moveButton.GetComponent<Button>().onClick.RemoveListener(() => MoveObject());
         mountButton.GetComponent<Button>().onClick.RemoveListener(() => MountObject());
+        unmountButton.GetComponent<Button>().onClick.RemoveListener(() => MountObject());
         takeButton.GetComponent<Button>().onClick.RemoveListener(() => TakeObject());
         putButton.GetComponent<Button>().onClick.RemoveListener(() => PutObject());
         colorButton.GetComponent<Button>().onClick.RemoveListener(() => ColorObject());
@@ -237,11 +243,16 @@ public class PopupObjectMenu : MonoBehaviour
     private void MountObject()
     {
         Manager.Instance.TogglePopUp(true, false);
-        Camera.main.GetComponent<CameraManager>()._operator = this.gameObject;
-        Camera.main.GetComponent<CameraManager>().overlay = true;
-        Camera.main.GetComponent<CameraManager>().overlay_type = overlayType.MOUNT;
+        if (mountState)
+        {
+            Camera.main.GetComponent<CameraManager>()._operator = this.gameObject;
+            Camera.main.GetComponent<CameraManager>().overlay = true;
+            Camera.main.GetComponent<CameraManager>().overlay_type = overlayType.MOUNT;
 
-        this.gameObject.GetComponent<BoxCollider>().enabled = false;
+            this.gameObject.GetComponent<BoxCollider>().enabled = false;
+        }
+        else
+            UnMountObjectAction();
         CloseWindow();
     }
 
@@ -265,10 +276,23 @@ public class PopupObjectMenu : MonoBehaviour
                 this.transform.position, _endpoint,
                 this.transform.eulerAngles, endEuler);
             Manager.Instance.timeline.AddAction(mount, this.gameObject);
+            manager.mountEver = _mount;
         }
         this.gameObject.GetComponent<BoxCollider>().enabled = true;
         Manager.Instance.TogglePopUp(true, true);
         CloseWindow();
+    }
+
+    private void UnMountObjectAction()
+    {
+        Action unmount = new Action(Manager.Instance.timeline.actions.Count, 0.5f, 0f, 1f, actionType.USE, this.gameObject, manager.mountEver,
+            this.transform.position, this.transform.position, // Need to correct the position
+            this.transform.eulerAngles, this.transform.eulerAngles);
+        unmount.umount = true;
+        Manager.Instance.timeline.AddAction(unmount, this.gameObject);
+        manager.mountEver = null;
+        this.gameObject.GetComponent<BoxCollider>().enabled = true;
+        Manager.Instance.TogglePopUp(true, true);
     }
 
     #endregion
@@ -383,6 +407,42 @@ public class PopupObjectMenu : MonoBehaviour
         Manager.Instance.SwitchShowWindow(EmptyObj.GetComponent<ClampPopup>().popup);
     }
 
+    #region Manage button display
+
+    private void ManageTakeButton()
+    {
+        if (manager && manager.itemsEver.Count > 0 && takeState)
+        {
+            takeState = false;
+            putButton.SetActive(!takeState);
+            takeButton.SetActive(takeState);
+        }
+        else if (manager && manager.itemsEver.Count == 0 && !takeState)
+        {
+            takeState = true;
+            putButton.SetActive(!takeState);
+            takeButton.SetActive(takeState);
+        }
+    }
+
+    private void ManageMountButton()
+    {
+        if (manager && manager.mountEver != null && mountState)
+        {
+            mountState = false;
+            unmountButton.SetActive(!mountState);
+            mountButton.SetActive(mountState);
+        }
+        else if (manager && manager.mountEver == null && !mountState)
+        {
+            mountState = true;
+            unmountButton.SetActive(!mountState);
+            mountButton.SetActive(mountState);
+        }
+    }
+
+    #endregion
+
     private void Update()
     {
         if (_coloring)
@@ -398,17 +458,7 @@ public class PopupObjectMenu : MonoBehaviour
             }
         }
 
-        if (manager && manager.itemsEver.Count > 0 && takeState)
-        {
-            takeState = false;
-            putButton.SetActive(!takeState);
-            takeButton.SetActive(takeState);
-        }
-        else if (manager && manager.itemsEver.Count == 0 && !takeState)
-        {
-            takeState = true;
-            putButton.SetActive(!takeState);
-            takeButton.SetActive(takeState);
-        }
+        ManageTakeButton();
+        ManageMountButton();
     }
 }

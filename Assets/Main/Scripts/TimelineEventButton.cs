@@ -41,6 +41,7 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         this._event = action;
         this.actor = actor;
 
+        Resize();
         UpdatePositionByTime();
     }
 
@@ -57,7 +58,20 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         this._event = action;
         this.actor = actor;
 
+        Resize();
         UpdatePositionByTime();
+    }
+
+    private void Resize()
+    {
+        float lineWidth = this.transform.parent.transform.parent.GetComponent<TimelineEvent>().timelineObject.GetComponent<RectTransform>().sizeDelta.x;
+        float durValue = (this.duration) / Manager.Instance.timeline.duration;
+        if (durValue <= 0)
+        {
+            print("Error, bad bad");
+            return;
+        }
+        this.gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(lineWidth * (durValue), 30);
     }
 
     public void Dispose()
@@ -111,17 +125,6 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
 
         double startTime = (cur / R) * Manager.Instance.GetDuration();
         startTime = System.Math.Round(startTime, 2);
-
-        // Check if position is correct (no overlap)
-        /*foreach (Action action in actor.actions)
-        {
-            if (action == _event)
-                continue;
-            if (startTime >= action.start && startTime < action.end)
-                return false;
-            if (startTime + duration <= action.end && startTime + duration >= action.start)
-                return false;
-        }*/
 
         if (this.start == (float)startTime)
             return false;
@@ -207,18 +210,7 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         this.start = _event.start;
         this.end = _event.end;
         if (_event.duration != this.duration)
-        {
-            float lineWidth = this.transform.parent.transform.parent.GetComponent<TimelineEvent>().timelineObject.GetComponent<RectTransform>().sizeDelta.x;
-            float durValue = (_event.duration) / Manager.Instance.timeline.duration;
-            if (durValue <= 0)
-            {
-                print("Error, bad bad");
-                return;
-            }
-            this.gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(lineWidth * (durValue), 30);
-
-            //print("New width : " + this.gameObject.GetComponent<RectTransform>().sizeDelta.x);
-        }
+            Resize();
         this.duration = _event.duration;
         //print(start + " " + end + " " + duration);
 
