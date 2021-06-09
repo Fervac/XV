@@ -186,10 +186,8 @@ public class Action
         this.start_pos = startpos;
 
         if (this.type == actionType.USE && this.umount)
-        {
             this.end_pos = startpos;
-        }
-        Debug.Log(this.type + ":" + this.start_pos + " -> " + this.end_pos);
+        //Debug.Log(this.type + ":" + this.start_pos + " -> " + this.end_pos);
     }
 }
 
