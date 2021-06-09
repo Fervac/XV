@@ -266,7 +266,7 @@ public class ActionActor
             }
             ++i;
             //Manager.Instance.timeline.PlayUntil(act.end); Not useful as it's not modifying the time cursor which is used in model manager ;(
-            Debug.Log(actions[i].type + " : " + actions[i].end_pos);
+            //Debug.Log(actions[i].type + " : " + actions[i].end_pos);
             act.UpdateTransform(actions[i].end_pos, actions[i].end_forward);
             Manager.Instance.timeline.GetTargetPosition(act, this);
         }
@@ -308,7 +308,11 @@ public class Timeline : MonoBehaviour
     private Text TotalTime;
 
     private bool isPlaying = false;
+    private bool isRecording = false;
+    private bool startedRecord = false;
     private bool tooltip = false;
+
+    public List<Color> eventStyle = new List<Color>();
 
     void Start()
     {
@@ -400,7 +404,9 @@ public class Timeline : MonoBehaviour
      */
     public void GetTargetPosition(Action action, ActionActor actor)
     {
-        if (action.type != actionType.TAKE /*&& action.type != actionType.PUT && action.type != actionType.USE*/)
+        if (action.type != actionType.TAKE /*&& action.type != actionType.PUT*/ && action.type != actionType.USE)
+            return;
+        if (action.type == actionType.USE && action.umount)
             return;
 
         int type = 0;
@@ -411,7 +417,7 @@ public class Timeline : MonoBehaviour
             return;
         foreach (Action act in actions) // Can be expensive if there is a lot of actions in the timeline (but won't impact performence at our level)
         {
-            if (act.object_target == null && act.object_operator != target)
+            if (act.object_operator != target && act.object_target == null)
                 continue;
             if (act.object_operator == target || act.object_target == target)
             {
@@ -689,9 +695,54 @@ public class Timeline : MonoBehaviour
     public void StartTimeline() { isPlaying = true; }
     public void PauseTimeline() { isPlaying = false; }
     public void StopTimeline() { isPlaying = false; timeCursor = 0.0f; UpdateCursorView(); UpdateOverview(); }
-    public void RecordTimeline() { print("To implement"); }
+    public void RecordTimeline() {
+        /*isRecording = !isRecording;
+        if (isRecording)
+        {
+            startedRecord = true;
+            VideoCaptureCtrl.instance.StartCapture();
+        }
+        if (!isRecording && startedRecord)
+        {
+            startedRecord = false;
+            VideoCaptureCtrl.instance.StopCapture();
+        }*/
+        ManageRecording();
+        isPlaying = !isPlaying;
+    }
+
+    private void ManageRecording()
+    {
+        if (RockVR.Video.VideoCaptureCtrl.instance.status == RockVR.Video.VideoCaptureCtrl.StatusType.NOT_START)
+        {
+            RockVR.Video.VideoCaptureCtrl.instance.StartCapture();
+        }
+        else if (RockVR.Video.VideoCaptureCtrl.instance.status == RockVR.Video.VideoCaptureCtrl.StatusType.STARTED)
+        {
+            RockVR.Video.VideoCaptureCtrl.instance.StopCapture();
+        }
+        else if (RockVR.Video.VideoCaptureCtrl.instance.status == RockVR.Video.VideoCaptureCtrl.StatusType.STOPPED)
+        {
+            print("Processing");
+        }
+        else if (RockVR.Video.VideoCaptureCtrl.instance.status == RockVR.Video.VideoCaptureCtrl.StatusType.FINISH)
+        {
+            print("Done and created");
+        }
+    }
 
     public bool IsPlaying() { return isPlaying; }
+
+    private void ResetModels()
+    {
+        // Reset all models
+        foreach (GameObject _object in Manager.Instance.loadedObjects)
+        {
+            ModelManager manager = _object.GetComponent<ModelManager>();
+            if (manager)
+                _object.GetComponent<ModelManager>().ResetModel();
+        }
+    }
 
     /*
      * This function shall execute the whole animation timeline (from current position to duration)
@@ -701,7 +752,10 @@ public class Timeline : MonoBehaviour
         if (!isPlaying)
             return;
         if (restart)
+        {
+            ResetModels();
             timeCursor = 0.0f;
+        }
 
         // Launch action (if any) in the timeline
         foreach (GameObject _eventElem in objects_event)
@@ -730,12 +784,7 @@ public class Timeline : MonoBehaviour
             return;
 
         // Replace all object at start position
-        foreach (GameObject _object in Manager.Instance.loadedObjects)
-        {
-            ModelManager manager = _object.GetComponent<ModelManager>();
-            if (manager)
-                _object.GetComponent<ModelManager>().ResetModel();
-        }
+        ResetModels();
 
         foreach (GameObject _eventElem in objects_event)
         {

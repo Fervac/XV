@@ -38,8 +38,8 @@ public class PopupObjectMenu : MonoBehaviour
 
         set
         {
-            if (_endpoint == value)
-                return;
+            /*if (_endpoint == value)
+                return;*/
 
             value.y = this.transform.position.y; // To avoid the object going up or down. But this imply that the floor is always at the same level
             _endpoint = value;
@@ -59,8 +59,8 @@ public class PopupObjectMenu : MonoBehaviour
 
         set
         {
-            if (_mountTarget == value)
-                return;
+            /*if (_mountTarget == value)
+                return;*/
 
             _mountTarget = value;
 
@@ -79,8 +79,8 @@ public class PopupObjectMenu : MonoBehaviour
 
         set
         {
-            if (_takeTarget == value)
-                return;
+            /*if (_takeTarget == value)
+                return;*/
 
             _takeTarget = value;
 
@@ -162,6 +162,9 @@ public class PopupObjectMenu : MonoBehaviour
     private void ValueChangeCheck()
     {
         nameTag = nameField.text;
+        this.gameObject.name = nameTag;
+        // We should update the timeline line (when modifying the gameobject name)
+        //Manager.Instance.UpdateActor(manager.);
     }
 
     private void OnMouseDown()
@@ -269,7 +272,6 @@ public class PopupObjectMenu : MonoBehaviour
 
     private void MountObjectAction(Vector3 point, GameObject _mount)
     {
-
         if (Camera.main.GetComponent<CameraManager>().overlay_type != overlayType.MOUNT)
         {
             this.gameObject.GetComponent<BoxCollider>().enabled = true;
@@ -306,6 +308,7 @@ public class PopupObjectMenu : MonoBehaviour
         unmount.umount = true;
         Manager.Instance.timeline.AddAction(unmount, this.gameObject);
         manager.mountEver = null;
+        _mountTarget = null;
         this.gameObject.GetComponent<BoxCollider>().enabled = true;
         Manager.Instance.TogglePopUp(true, true);
     }

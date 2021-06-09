@@ -3,7 +3,7 @@ using System.Collections;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEditor;
+//using UnityEditor;
 
 public class ObjFromFileTest : MonoBehaviour
 {
@@ -18,7 +18,8 @@ public class ObjFromFileTest : MonoBehaviour
 
     public void OpenExplorer()
     {
-        objPath = EditorUtility.OpenFilePanel("Object to import", "", "obj");
+        //objPath = EditorUtility.OpenFilePanel("Object to import", "", "obj");
+        objPath = string.Empty;
     }
 
     public void LoadObject()

@@ -41,6 +41,7 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         this._event = action;
         this.actor = actor;
 
+        SetColor();
         Resize();
         UpdatePositionByTime();
     }
@@ -58,8 +59,14 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         this._event = action;
         this.actor = actor;
 
+        SetColor();
         Resize();
         UpdatePositionByTime();
+    }
+
+    private void SetColor()
+    {
+        this.gameObject.GetComponent<Image>().color = Manager.Instance.timeline.eventStyle[(int)(this.type)];
     }
 
     private void Resize()
@@ -76,6 +83,11 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
 
     public void Dispose()
     {
+        if (_event.type == actionType.USE && _event.object_operator.GetComponent<ModelManager>().mountEver != null)
+        {
+            print("Cannot delete Unmount action if object is still mounted.");
+            return;
+        }
         this.transform.parent.transform.parent.GetComponent<TimelineEvent>().DeleteEvent(this.gameObject, _event);
         GameObject.Destroy(this.gameObject);
     }

@@ -27,6 +27,7 @@ public class ModelManager : MonoBehaviour
 
     public Vector3 init_pos;
     public Vector3 init_rot;
+    public Vector3 init_scale;
     public GameObject init_parent;
 
     private List<Vector3> pos_hist = new List<Vector3>();
@@ -47,6 +48,7 @@ public class ModelManager : MonoBehaviour
 
         init_pos = this.transform.position;
         init_rot = this.transform.eulerAngles;
+        init_scale = this.transform.localScale;
         init_parent = this.transform.parent.gameObject;
     }
 
@@ -60,6 +62,7 @@ public class ModelManager : MonoBehaviour
 
         this.transform.position = init_pos;
         this.transform.eulerAngles = init_rot;
+        this.transform.localScale = init_scale;
         this.transform.SetParent(init_parent.transform);
     }
 
@@ -130,7 +133,8 @@ public class ModelManager : MonoBehaviour
             return true;
         if (action.end < Manager.Instance.GetTimeCursor())
         {
-            print("Completing action : " + action.type + " ; at " + Manager.Instance.GetTimeCursor());
+            Action old = this.current;
+            this.current = action;
             switch(action.type)
             {
                 case actionType.MOVE:
@@ -141,7 +145,7 @@ public class ModelManager : MonoBehaviour
                     if (this.mount)
                         this.mount.transform.position = this.transform.position;
                     break;
-                case actionType.TAKE:
+                /*case actionType.TAKE:
                     this.transform.position = action.end_pos;
                     action.object_target.transform.position = action.end_pos;
                     action.object_target.transform.localScale = new Vector3(0f, 0f, 0f);
@@ -169,10 +173,23 @@ public class ModelManager : MonoBehaviour
                         action.object_target.transform.position = action.end_pos;
                         mount = action.object_target;
                     }
+                    break;*/
+                case actionType.TAKE:
+                    Take(action.start + action.duration - (action.duration / 2f) - 0.001f);
+                    Take(action.start + action.duration);
+                    break;
+                case actionType.PUT:
+                    Put(action.start + action.duration - (action.duration / 2f) - 0.001f);
+                    Put(action.start + action.duration);
+                    break;
+                case actionType.USE:
+                    Use(action.start + action.duration - (action.duration / 2f) - 0.001f);
+                    Use(action.start + action.duration);
                     break;
                 default:
                     break;
             }
+            this.current = old;
             return true;
         }
         return false;
@@ -235,9 +252,12 @@ public class ModelManager : MonoBehaviour
 
     #region Animation Functions
 
-    public void Move()
+    public void Move(float forceDelta = -1f)
     {
-        moveDelta = Manager.Instance.GetTimeCursor() - current.start;
+        if (forceDelta == -1f)
+            moveDelta = Manager.Instance.GetTimeCursor() - current.start;
+        else
+            moveDelta = forceDelta;
         //Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, moveDelta / current.duration);
         /*if (moveDelta >= current.duration)
             moveDelta = current.duration;*/
@@ -285,9 +305,12 @@ public class ModelManager : MonoBehaviour
      *      
      *  The main difficulty is to know where should be the target at X point. Playing the timeline/action is easy, rewind is harder.
      */
-    public void Take()
+    public void Take(float forceDelta = -1f)
     {
-        takeDelta = Manager.Instance.GetTimeCursor() - current.start;
+        if (forceDelta == -1f)
+            takeDelta = Manager.Instance.GetTimeCursor() - current.start;
+        else
+            takeDelta = forceDelta;
 
         if (!angleSet)
         {
@@ -337,9 +360,12 @@ public class ModelManager : MonoBehaviour
      *      1 - Go to the target point
      *      2 - Put the target at point
      */
-    public void Put()
+    public void Put(float forceDelta = -1f)
     {
-        takeDelta = Manager.Instance.GetTimeCursor() - current.start;
+        if (forceDelta == -1f)
+            takeDelta = Manager.Instance.GetTimeCursor() - current.start;
+        else
+            takeDelta = forceDelta;
 
         if (!angleSet)
         {
@@ -387,9 +413,12 @@ public class ModelManager : MonoBehaviour
      * Use or mount. By mounting, the main object will be able to "ride" the target.
      * This means that the user will move and interact with the world through the mount.
      */
-    public void Use()
+    public void Use(float forceDelta = -1f)
     {
-        useDelta = Manager.Instance.GetTimeCursor() - current.start;
+        if (forceDelta == -1f)
+            useDelta = Manager.Instance.GetTimeCursor() - current.start;
+        else
+            useDelta = forceDelta;
 
         if (!current.umount)
         {
