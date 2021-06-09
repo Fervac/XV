@@ -26,6 +26,7 @@ public class DragObject : MonoBehaviour
 
 			if (Input.GetMouseButtonUp(1))
 			{
+				// Update init_pos & init_rot of ModelManager ? And then all actions using this object ?
 				_drag = false;
 			}
 		}

@@ -50,6 +50,19 @@ public class ModelManager : MonoBehaviour
         init_parent = this.transform.parent.gameObject;
     }
 
+    public void ResetModel()
+    {
+        current = null;
+        mount = null;
+        items.Clear();
+
+        ResetVariables();
+
+        this.transform.position = init_pos;
+        this.transform.eulerAngles = init_rot;
+        this.transform.SetParent(init_parent.transform);
+    }
+
     public void ResetVariables()
     {
         isRotating = false;
@@ -117,10 +130,16 @@ public class ModelManager : MonoBehaviour
             return true;
         if (action.end < Manager.Instance.GetTimeCursor())
         {
+            print("Completing action : " + action.type + " ; at " + Manager.Instance.GetTimeCursor());
             switch(action.type)
             {
                 case actionType.MOVE:
                     this.transform.position = action.end_pos;
+                    this.transform.eulerAngles = new Vector3(action.start_forward.x,
+                        action.start_forward.y + action.angle,
+                        action.start_forward.z);
+                    if (this.mount)
+                        this.mount.transform.position = this.transform.position;
                     break;
                 case actionType.TAKE:
                     this.transform.position = action.end_pos;
@@ -134,7 +153,7 @@ public class ModelManager : MonoBehaviour
                         lastItem.transform.localScale = new Vector3(1f, 1f, 1f);
                     break;
                 case actionType.USE:
-                    /*if (mount)
+                    if (mount && action.umount)
                     {
                         action.object_target.transform.SetParent(init_parent.transform);
                         action.object_target.GetComponent<PopupObjectMenu>().clickable = true;
@@ -142,14 +161,14 @@ public class ModelManager : MonoBehaviour
                         action.object_target.transform.position = action.end_pos;
                         mount = null;
                     }
-                    else if (!mount)
+                    else if (!mount && !action.umount)
                     {
                         action.object_target.transform.SetParent(this.transform);
                         action.object_target.GetComponent<PopupObjectMenu>().clickable = false;
                         action.object_target.GetComponent<BoxCollider>().enabled = false;
                         action.object_target.transform.position = action.end_pos;
                         mount = action.object_target;
-                    }*/
+                    }
                     break;
                 default:
                     break;
@@ -243,6 +262,13 @@ public class ModelManager : MonoBehaviour
         // Animate model
 
         this.transform.position = position;
+
+        if (this.mount)
+        {
+            this.mount.transform.position = position;
+            this.mount.transform.eulerAngles = transform.eulerAngles;
+        }
+
         // Move stuff (and rotate stuff ?)
         if (moveDelta >= current.end)
         {
@@ -395,7 +421,7 @@ public class ModelManager : MonoBehaviour
              */
             if (current.umount)
             {
-                current.object_target.transform.SetParent(this.transform);
+                current.object_target.transform.SetParent(this.transform, true);
                 current.object_target.GetComponent<PopupObjectMenu>().clickable = false;
                 current.object_target.GetComponent<BoxCollider>().enabled = false;
             }
@@ -425,61 +451,13 @@ public class ModelManager : MonoBehaviour
             else
             {
                 this.mount = current.object_target;
-                this.mount.transform.SetParent(this.transform);
+                //this.transform.forward = this.mount.transform.forward;
+                this.mount.transform.SetParent(this.transform, true);
+                this.mount.transform.position = this.transform.position;
                 this.mount.GetComponent<PopupObjectMenu>().clickable = false;
                 this.mount.GetComponent<BoxCollider>().enabled = false;
             }
         }
-
-        /*useDelta = Manager.Instance.GetTimeCursor() - current.start;
-
-        if (current.object_target && useDelta < current.duration - (current.duration / 2f))
-        {
-            if (this.mount == current.object_target)
-            {
-                this.mount = null;
-                current.object_target.transform.SetParent(init_parent.transform);
-                current.object_target.GetComponent<PopupObjectMenu>().clickable = true;
-                current.object_target.GetComponent<BoxCollider>().enabled = true;
-            }
-
-            if (!angleSet)
-            {
-                Vector3 dir = Vector3.Normalize(current.object_target.transform.position - transform.position);
-                float angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
-                Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
-                angleSet = true;
-            }
-            float angleDelta = Mathf.Lerp(0, angle, useDelta / (0.15f));
-            if (angleDelta != 0.0f || angleDelta != angle)
-            {
-                transform.eulerAngles = new Vector3(current.start_forward.x,
-                    current.start_forward.y + angleDelta,
-                    current.start_forward.z);
-            }
-
-            Vector3 position = Vector3.Lerp(current.start_pos, current.end_pos, useDelta / (current.duration - (current.duration / 2f)));
-            this.transform.position = position;
-        }
-        else
-        {
-            if (this.mount != current.object_target)
-            {
-                if (this.mount != null)
-                {
-                    this.mount.transform.SetParent(this.mount.GetComponent<ModelManager>().init_parent.transform);
-                    this.mount.GetComponent<PopupObjectMenu>().clickable = true;
-                    this.mount.GetComponent<BoxCollider>().enabled = true;
-                }
-                this.mount = current.object_target;
-            }
-            if (current.object_target)
-            {
-                current.object_target.transform.SetParent(this.transform);
-                current.object_target.GetComponent<PopupObjectMenu>().clickable = false;
-                current.object_target.GetComponent<BoxCollider>().enabled = false;
-            }
-        }*/
     }
     #endregion
 

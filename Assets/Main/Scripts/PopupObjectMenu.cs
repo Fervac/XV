@@ -199,6 +199,15 @@ public class PopupObjectMenu : MonoBehaviour
 
     #region Actions handlers
 
+    private float GetActionStartFromCursor()
+    {
+        float start = Manager.Instance.GetTimeCursor();
+        if (start + 1f > Manager.Instance.GetDuration())
+            start = 0.0f;
+
+        return (start);
+    }
+
     #region Move action
 
     private void MoveObject()
@@ -223,8 +232,10 @@ public class PopupObjectMenu : MonoBehaviour
             float angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
             Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
 
+            float start = GetActionStartFromCursor();
+
             // Add action to the timeline
-            Action move = new Action(Manager.Instance.timeline.actions.Count, 1f, 0f, 1f, actionType.MOVE, this.gameObject, null,
+            Action move = new Action(Manager.Instance.timeline.actions.Count, 1f, start, start + 1f, actionType.MOVE, this.gameObject, null,
                 this.transform.position, _endpoint,
                 this.transform.eulerAngles, endEuler);
             Manager.Instance.timeline.AddAction(move, this.gameObject);
@@ -272,7 +283,9 @@ public class PopupObjectMenu : MonoBehaviour
             float angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
             Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
 
-            Action mount = new Action(Manager.Instance.timeline.actions.Count, 1f, 0f, 1f, actionType.USE, this.gameObject, _mount,
+            float start = GetActionStartFromCursor();
+
+            Action mount = new Action(Manager.Instance.timeline.actions.Count, 1f, start, start + 1f, actionType.USE, this.gameObject, _mount,
                 this.transform.position, _endpoint,
                 this.transform.eulerAngles, endEuler);
             Manager.Instance.timeline.AddAction(mount, this.gameObject);
@@ -285,7 +298,9 @@ public class PopupObjectMenu : MonoBehaviour
 
     private void UnMountObjectAction()
     {
-        Action unmount = new Action(Manager.Instance.timeline.actions.Count, 0.5f, 0f, 1f, actionType.USE, this.gameObject, manager.mountEver,
+        float start = GetActionStartFromCursor();
+
+        Action unmount = new Action(Manager.Instance.timeline.actions.Count, 0.5f, start, start + 0.5f, actionType.USE, this.gameObject, manager.mountEver,
             this.transform.position, this.transform.position, // Need to correct the position
             this.transform.eulerAngles, this.transform.eulerAngles);
         unmount.umount = true;
@@ -324,7 +339,9 @@ public class PopupObjectMenu : MonoBehaviour
             float angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
             Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
 
-            Action take = new Action(Manager.Instance.timeline.actions.Count, 1f, 0f, 1f, actionType.TAKE, this.gameObject, _take,
+            float start = GetActionStartFromCursor();
+
+            Action take = new Action(Manager.Instance.timeline.actions.Count, 1f, start, start + 1f, actionType.TAKE, this.gameObject, _take,
                 this.transform.position, _endpoint,
                 this.transform.eulerAngles, endEuler);
             Manager.Instance.timeline.AddAction(take, this.gameObject);
@@ -358,18 +375,17 @@ public class PopupObjectMenu : MonoBehaviour
             CloseWindow();
             return;
         }
-        /*if (_take != null)
-        {*/
-            Vector3 dir = Vector3.Normalize(_endpoint - transform.position);
-            float angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
-            Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
+        Vector3 dir = Vector3.Normalize(_endpoint - transform.position);
+        float angle = Vector3.SignedAngle(transform.forward, dir, new Vector3(0, 1, 0));
+        Vector3 endEuler = new Vector3(this.transform.eulerAngles.x, this.transform.eulerAngles.y + angle, this.transform.eulerAngles.z);
 
-            Action put = new Action(Manager.Instance.timeline.actions.Count, 1f, 0f, 1f, actionType.PUT, this.gameObject, manager.itemsEver[0],
+        float start = GetActionStartFromCursor();
+
+        Action put = new Action(Manager.Instance.timeline.actions.Count, 1f, start, start + 1f, actionType.PUT, this.gameObject, manager.itemsEver[0],
                 this.transform.position, _endpoint,
                 this.transform.eulerAngles, endEuler);
-            Manager.Instance.timeline.AddAction(put, this.gameObject);
-            manager.itemsEver.Remove(manager.itemsEver[0]);
-        //}
+        Manager.Instance.timeline.AddAction(put, this.gameObject);
+        manager.itemsEver.Remove(manager.itemsEver[0]);
         this.gameObject.GetComponent<BoxCollider>().enabled = true;
         Manager.Instance.TogglePopUp(true, true);
         CloseWindow();

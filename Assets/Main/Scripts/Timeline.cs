@@ -186,10 +186,8 @@ public class Action
         this.start_pos = startpos;
 
         if (this.type == actionType.USE && this.umount)
-        {
             this.end_pos = startpos;
-        }
-        Debug.Log(this.type + ":" + this.start_pos + " -> " + this.end_pos);
+        //Debug.Log(this.type + ":" + this.start_pos + " -> " + this.end_pos);
     }
 }
 
@@ -339,7 +337,7 @@ public class Timeline : MonoBehaviour
 
     private float GetActionStart(Action action, ActionActor actor)
     {
-        float firstTimePos = 0.0f;
+        float firstTimePos = action.start;
         float endTimePos = firstTimePos + action.duration;
 
         foreach (Action act in actor.actions)
@@ -362,7 +360,7 @@ public class Timeline : MonoBehaviour
     private Vector3 GetActionStartPos(Action action, ActionActor actor)
     {
         Vector3 startpos = actor.object_operator.transform.position;
-        float firstTimePos = 0.0f;
+        float firstTimePos = action.start;
         float endTimePos = firstTimePos + action.duration;
         Vector3 endForward = action.start_forward;
 
@@ -731,6 +729,14 @@ public class Timeline : MonoBehaviour
         if (isPlaying)
             return;
 
+        // Replace all object at start position
+        foreach (GameObject _object in Manager.Instance.loadedObjects)
+        {
+            ModelManager manager = _object.GetComponent<ModelManager>();
+            if (manager)
+                _object.GetComponent<ModelManager>().ResetModel();
+        }
+
         foreach (GameObject _eventElem in objects_event)
         {
             TimelineEvent _event = _eventElem.GetComponent<TimelineEvent>();
@@ -740,7 +746,7 @@ public class Timeline : MonoBehaviour
 
     void Update() // TODO : delete
     {
-        if (isPlaying)
+        if (isPlaying) // TODO : Maybe close all popup when playing
             Play(timeCursor == duration);
         if (Input.GetKeyDown(KeyCode.Space))
             isPlaying = !isPlaying;
