@@ -149,4 +149,16 @@ public class Manager : MonoBehaviour
     {
         window.SetActive(!window.activeInHierarchy);
     }
+
+    #region SaveLoadManagement
+
+    public void LoadObjects(List<GameObject> loadedObjects)
+    {
+        foreach (GameObject obj in loadedObjects)
+        {
+            SpawnPrefab(obj, Quaternion.identity, Vector3.zero);
+        }
+    }
+
+    #endregion
 }
