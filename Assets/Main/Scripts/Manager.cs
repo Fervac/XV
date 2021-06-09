@@ -28,7 +28,7 @@ public class Manager : MonoBehaviour
     }
     #endregion
 
-    List<GameObject> loadedObjects;
+    public List<GameObject> loadedObjects;
 
     public GameObject ObjetParent;
 

@@ -11980,6 +11980,7 @@ MonoBehaviour:
   velocityModifier: 1
   rotationModifier: 1
   overlay: 0
+  overlay_type: 0
   _operator: {fileID: 0}
 --- !u!1 &2095756763
 GameObject:
