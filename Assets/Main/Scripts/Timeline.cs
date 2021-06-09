@@ -693,21 +693,11 @@ public class Timeline : MonoBehaviour
     #endregion
 
     public void StartTimeline() { isPlaying = true; }
-    public void PauseTimeline() { isPlaying = false; }
-    public void StopTimeline() { isPlaying = false; timeCursor = 0.0f; UpdateCursorView(); UpdateOverview(); }
+    public void PauseTimeline() { isPlaying = false; if (isRecording) StopRecording(); }
+    public void StopTimeline() { isPlaying = false; timeCursor = 0.0f; UpdateCursorView(); UpdateOverview(); if (isRecording) StopRecording(); }
     public void RecordTimeline() {
-        /*isRecording = !isRecording;
-        if (isRecording)
-        {
-            startedRecord = true;
-            VideoCaptureCtrl.instance.StartCapture();
-        }
-        if (!isRecording && startedRecord)
-        {
-            startedRecord = false;
-            VideoCaptureCtrl.instance.StopCapture();
-        }*/
         ManageRecording();
+        isRecording = !isRecording;
         isPlaying = !isPlaying;
     }
 
@@ -729,6 +719,13 @@ public class Timeline : MonoBehaviour
         {
             print("Done and created");
         }
+    }
+
+    private void StopRecording()
+    {
+        UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
+        isRecording = false;
+        RockVR.Video.VideoCaptureCtrl.instance.StopCapture();
     }
 
     public bool IsPlaying() { return isPlaying; }
@@ -768,6 +765,8 @@ public class Timeline : MonoBehaviour
         {
             isPlaying = false;
             timeCursor = duration;
+            if (isRecording)
+                StopRecording();
             return;
         }
         timeCursor += Time.deltaTime;
