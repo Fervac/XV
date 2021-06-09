@@ -14,14 +14,16 @@ public static class SaveSystem
         }
     }
 
-    public static void Save(string saveString)
+    public static string Save(string saveString)
     {
         int saveNumber = 1;
-        while (File.Exists("save_" + saveNumber + ".txt"))
+        while (File.Exists(SAVE_FOLDER + "save_" + saveNumber + ".txt"))
         {
             saveNumber++;
         }
         File.WriteAllText(SAVE_FOLDER + "/save_" + saveNumber + ".txt", saveString);
+
+        return (SAVE_FOLDER + "save_" + saveNumber + ".txt");
     }
 
     public static string Load()
@@ -50,5 +52,13 @@ public static class SaveSystem
             return saveString;
         }
         return null;
+    }
+
+    public static FileInfo[] GetSaveFiles()
+    {
+        DirectoryInfo directoryInfo = new DirectoryInfo(SAVE_FOLDER);
+        FileInfo[] saveFiles = directoryInfo.GetFiles();
+
+        return saveFiles;
     }
 }

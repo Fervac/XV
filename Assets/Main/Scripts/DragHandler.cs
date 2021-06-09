@@ -129,7 +129,8 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 		// Check if the mouse was clicked over a UI element
 		if (!EventSystem.current.IsPointerOverGameObject())
 		{
-			Manager.Instance.SpawnPrefab(prefab, rot, eulers);
+			if (Manager.Instance != null)
+				Manager.Instance.SpawnPrefab(prefab, rot, eulers);
 
 			//Manager.Instance.SpawnPrefab(prefab, ghostObject.transform);
 		}

@@ -43,6 +43,7 @@ public class Manager : MonoBehaviour
     public FlexibleColorPicker fcp;
 
     private bool popup = true;
+    public GameObject sceneSelected;
 
     private void Start()
     {
