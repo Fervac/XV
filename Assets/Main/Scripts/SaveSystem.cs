@@ -37,7 +37,10 @@ public class GameObjectSaveData
 
 public static class SaveSystem
 {
-    private static readonly string SAVE_FOLDER = Application.dataPath + "/Saves/";
+    private static readonly string SAVE_FOLDER_EDITOR = Application.dataPath + "/Saves/";
+    private static readonly string STANDALONE_SAVE_FOLDER = Application.persistentDataPath + "/Saves/";
+
+    private static readonly string SAVE_FOLDER = /*Application.isEditor ? SAVE_FOLDER_EDITOR : */STANDALONE_SAVE_FOLDER;
     public static void Init()
     {
         if (!Directory.Exists(SAVE_FOLDER))

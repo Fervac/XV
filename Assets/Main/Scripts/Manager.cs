@@ -211,6 +211,9 @@ public class Manager : MonoBehaviour
             if (GameObject.Find(obj.name))
                 Destroy(obj);
         }
+
+        loadedObjects.Clear();
+        loadedObjects = new List<GameObject>();
     }
 
     public Dictionary<int, GameObject> LoadObjects(List<GameObjectSaveData> savedObjects)
@@ -248,7 +251,7 @@ public class Manager : MonoBehaviour
             spawned.transform.position = obj.init_pos;
             spawned.transform.eulerAngles = obj.init_rot;
             spawned.transform.localScale = obj.init_scale;
-            spawned.transform.SetParent(obj.init_parent.transform);
+            //spawned.transform.SetParent(obj.init_parent.transform);
 
             modelManager = spawned.GetComponent<ModelManager>();
             modelManager.init_pos = obj.init_pos;
