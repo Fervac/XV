@@ -18,7 +18,7 @@ using UnityEngine;
 using System;
 using Dummiesman;
 #if UNITY_EDITOR
-using UnityEditor;
+//using UnityEditor;
 #endif
 
 namespace Dummiesman
@@ -48,27 +48,27 @@ namespace Dummiesman
         //file info for files loaded from file path, used for GameObject naming and MTL finding
         private FileInfo _objInfo;
 
-#if UNITY_EDITOR
-        [MenuItem("GameObject/Import From OBJ")]
-        static void ObjLoadMenu()
-        {
-            string pth =  EditorUtility.OpenFilePanel("Import OBJ", "", "obj");
-            if (!string.IsNullOrEmpty(pth))
-            {
-                System.Diagnostics.Stopwatch s = new System.Diagnostics.Stopwatch();
-                s.Start();
+//#if UNITY_EDITOR
+//        [MenuItem("GameObject/Import From OBJ")]
+//        static void ObjLoadMenu()
+//        {
+//            string pth =  EditorUtility.OpenFilePanel("Import OBJ", "", "obj");
+//            if (!string.IsNullOrEmpty(pth))
+//            {
+//                System.Diagnostics.Stopwatch s = new System.Diagnostics.Stopwatch();
+//                s.Start();
 
-                var loader = new OBJLoader
-                {
-                    SplitMode = SplitMode.Object,
-                };
-                loader.Load(pth);
+//                var loader = new OBJLoader
+//                {
+//                    SplitMode = SplitMode.Object,
+//                };
+//                loader.Load(pth);
 
-                Debug.Log($"OBJ import time: {s.ElapsedMilliseconds}ms");
-                s.Stop();
-            }
-        }
-#endif
+//                Debug.Log($"OBJ import time: {s.ElapsedMilliseconds}ms");
+//                s.Stop();
+//            }
+//        }
+//#endif
 
         /// <summary>
         /// Helper function to load mtllib statements

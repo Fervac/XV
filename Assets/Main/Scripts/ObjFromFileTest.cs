@@ -1,9 +1,10 @@
 ﻿using Dummiesman;
 using System.Collections;
 using System.IO;
+//using UnityEditor;
+using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.UI;
-//using UnityEditor;
 
 public class ObjFromFileTest : MonoBehaviour
 {
@@ -18,8 +19,40 @@ public class ObjFromFileTest : MonoBehaviour
 
     public void OpenExplorer()
     {
-        //objPath = EditorUtility.OpenFilePanel("Object to import", "", "obj");
         objPath = string.Empty;
+
+
+        //FileBrowser.SetFilters(true, new FileBrowser.Filter("Images", ".jpg", ".png"), new FileBrowser.Filter("Text Files", ".txt", ".pdf"));
+
+        FileBrowser.SetDefaultFilter(".obj");
+
+        FileBrowser.SetExcludedExtensions(".lnk", ".tmp", ".zip", ".rar", ".exe");
+
+        //FileBrowser.AddQuickLink("Users", "C:\\Users", null);
+
+        StartCoroutine(ShowLoadDialogCoroutine());
+    }
+
+    IEnumerator ShowLoadDialogCoroutine()
+    {
+        yield return FileBrowser.WaitForLoadDialog(FileBrowser.PickMode.FilesAndFolders, true, null, null, "Load Files and Folders", "Load");
+
+        //Debug.Log(FileBrowser.Success);
+
+        if (FileBrowser.Success)
+        {
+            // Print paths of the selected files (FileBrowser.Result) (null, if FileBrowser.Success is false)
+            //for (int i = 0; i < FileBrowser.Result.Length; i++)
+                //Debug.Log(FileBrowser.Result[i]);
+
+            // Read the bytes of the first file via FileBrowserHelpers
+            byte[] bytes = FileBrowserHelpers.ReadBytesFromFile(FileBrowser.Result[0]);
+
+            string destinationPath = Path.Combine(FileBrowserHelpers.GetDirectoryName(FileBrowser.Result[0]), FileBrowserHelpers.GetFilename(FileBrowser.Result[0]));
+            objPath = destinationPath;
+
+            Debug.Log(objPath);
+        }
     }
 
     public void LoadObject()
