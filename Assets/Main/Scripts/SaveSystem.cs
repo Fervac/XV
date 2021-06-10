@@ -37,7 +37,10 @@ public class GameObjectSaveData
 
 public static class SaveSystem
 {
-    private static readonly string SAVE_FOLDER = Application.dataPath + "/Saves/";
+    private static readonly string SAVE_FOLDER_EDITOR = Application.dataPath + "/Saves/";
+    private static readonly string STANDALONE_SAVE_FOLDER = Application.persistentDataPath + "/Saves/";
+
+    private static readonly string SAVE_FOLDER = /*Application.isEditor ? SAVE_FOLDER_EDITOR : */STANDALONE_SAVE_FOLDER;
     public static void Init()
     {
         if (!Directory.Exists(SAVE_FOLDER))
@@ -46,16 +49,31 @@ public static class SaveSystem
         }
     }
 
-    public static string Save(string saveString)
+    public static string Save(string saveString, string saveName = "")
     {
+        string trueName = "";
         int saveNumber = 1;
-        while (File.Exists(SAVE_FOLDER + "save_" + saveNumber + ".json"))
-        {
-            saveNumber++;
-        }
-        File.WriteAllText(SAVE_FOLDER + "/save_" + saveNumber + ".json", saveString);
 
-        return (SAVE_FOLDER + "save_" + saveNumber + ".json");
+        if (string.IsNullOrEmpty(saveName))
+        {
+            while (File.Exists(SAVE_FOLDER + "save_" + saveNumber + ".json"))
+                saveNumber++;
+            trueName = "save_" + saveNumber;
+        }
+        else
+        {
+            if (!File.Exists(SAVE_FOLDER + saveName + ".json"))
+                trueName = saveName;
+            else
+            {
+                while (File.Exists(SAVE_FOLDER + saveName + "(" + saveNumber + ").json"))
+                    saveNumber++;
+                trueName = saveName + "(" + saveNumber + ")";
+            }
+        }
+        File.WriteAllText(SAVE_FOLDER + trueName + ".json", saveString);
+
+        return (SAVE_FOLDER + trueName + ".json");
     }
 
     public static string Load()

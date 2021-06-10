@@ -41,7 +41,7 @@ public class SceneManager : MonoBehaviour
         Manager.Instance.SwitchShowWindow(ScenePanel);
     }
 
-    private void AddToScrollview(FileInfo fileInfo)
+    private void AddToScrollview(FileInfo fileInfo) // TODO : Update at each reveal else it won't refresh
     {
         GameObject scene = Instantiate(ContentPrefab);
         scene.transform.SetParent(Content.transform);
@@ -116,9 +116,10 @@ public class SceneManager : MonoBehaviour
 
         saveObject.SetObjectList(Manager.Instance.loadedObjects);
         saveObject.timelineDuration = Manager.Instance.GetDuration();
+        saveObject.sceneName = Manager.Instance.currentSceneName;
 
         string json = JsonUtility.ToJson(saveObject);
-        string nameTag = SaveSystem.Save(json);
+        string nameTag = SaveSystem.Save(json, Manager.Instance.currentSceneName);
 
         FileInfo[] saveFiles = SaveSystem.GetSaveFiles();
 
@@ -146,6 +147,8 @@ public class SceneManager : MonoBehaviour
                 Dictionary<int, GameObject> instances;
                 instances = Manager.Instance.LoadObjects(saveObject.objectsList);
                 Manager.Instance.LoadTimeline(saveObject.actionsList, instances, saveObject.timelineDuration);
+                Manager.Instance.currentSceneName = saveObject.sceneName;
+                Manager.Instance.SceneInput.GetComponent<InputField>().text = Manager.Instance.currentSceneName;
             }
         }
         else
@@ -166,6 +169,8 @@ public class SceneManager : MonoBehaviour
         public List<Action> actionsList;
 
         public float timelineDuration = 15f;
+
+        public string sceneName = "";
 
         // Cannot save GameObject like this, it will only save object instanceId which is not really useful...
         public void SetObjectList(List<GameObject> _objectsList)

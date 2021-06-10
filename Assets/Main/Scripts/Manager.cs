@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -47,6 +48,9 @@ public class Manager : MonoBehaviour
 
     private bool popup = true;
     public GameObject sceneSelected;
+
+    public GameObject SceneInput;
+    public string currentSceneName = "";
 
     private void Start()
     {
@@ -180,6 +184,11 @@ public class Manager : MonoBehaviour
         window.SetActive(!window.activeInHierarchy);
     }
 
+    public void QuitApp()
+    {
+        Application.Quit();
+    }
+
     public List<GameObject> GetAssetsList()
     {
         List<GameObject> assets = new List<GameObject>();
@@ -200,6 +209,12 @@ public class Manager : MonoBehaviour
         return assets;
     }
 
+    public void UpdateSceneName(string sceneName)
+    {
+        this.currentSceneName = sceneName.Trim();
+        this.currentSceneName = Regex.Replace(this.currentSceneName, @"[^a-zA-Z0-9 _]", "");
+    }
+
     #region SaveLoadManagement
 
     public void ResetScene()
@@ -209,9 +224,13 @@ public class Manager : MonoBehaviour
         foreach (GameObject obj in SceneObjects)
         {
             DeleteFromLoadedList(obj);
+            obj.GetComponent<PopupObjectMenu>().DestroyFromAfar();
             if (GameObject.Find(obj.name))
                 Destroy(obj);
         }
+
+        loadedObjects.Clear();
+        loadedObjects = new List<GameObject>();
     }
 
     public Dictionary<int, GameObject> LoadObjects(List<GameObjectSaveData> savedObjects)
@@ -249,7 +268,7 @@ public class Manager : MonoBehaviour
             spawned.transform.position = obj.init_pos;
             spawned.transform.eulerAngles = obj.init_rot;
             spawned.transform.localScale = obj.init_scale;
-            spawned.transform.SetParent(obj.init_parent.transform);
+            //spawned.transform.SetParent(obj.init_parent.transform);
 
             modelManager = spawned.GetComponent<ModelManager>();
             modelManager.init_pos = obj.init_pos;

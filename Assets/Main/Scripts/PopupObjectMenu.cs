@@ -188,7 +188,9 @@ public class PopupObjectMenu : MonoBehaviour
         }
     }
 
-    private void DestroyObject()
+    public void DestroyFromAfar() { DestroyObject(true); } // Used to reset scene
+
+    private void DestroyObject(bool onlyPop = false)
     {
         destroyButton.GetComponent<Button>().onClick.RemoveListener(() => DestroyObject());
         rotateButton.GetComponent<Button>().onClick.RemoveListener(() => RotateObject());
@@ -207,9 +209,14 @@ public class PopupObjectMenu : MonoBehaviour
         Manager.Instance.timeline.DeleteActor(this.gameObject);
         Manager.Instance.DeleteFromLoadedList(this.gameObject);
 
-        ManageWindow();
-        Destroy(EmptyObj.GetComponent<ClampPopup>().popup);
-        Destroy(this.gameObject);
+        if (!onlyPop)
+        {
+            ManageWindow();
+            Destroy(EmptyObj.GetComponent<ClampPopup>().popup);
+            Destroy(this.gameObject);
+        }
+        else
+            Destroy(EmptyObj.GetComponent<ClampPopup>().popup);
     }
 
     #region Actions handlers
