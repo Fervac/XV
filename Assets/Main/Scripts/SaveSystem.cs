@@ -29,22 +29,50 @@ public static class SaveSystem
     public static string Load()
     {
         DirectoryInfo directoryInfo = new DirectoryInfo(SAVE_FOLDER);
-        FileInfo[] saveFiles = directoryInfo.GetFiles();
+        //FileInfo[] saveFiles = directoryInfo.GetFiles();
         FileInfo mostRecentFile = null;
-        foreach (FileInfo fileInfo in saveFiles)
+
+        GameObject scene = null;
+
+
+
+        if (Manager.Instance != null)
+            scene = Manager.Instance.sceneSelected;
+
+        if (scene)
         {
-            if (mostRecentFile == null)
+            FileInfo[] saveFiles = SaveSystem.GetSaveFiles();
+
+            foreach (FileInfo fileInfo in saveFiles)
             {
-                mostRecentFile = fileInfo;
-            }
-            else
-            {
-                if (fileInfo.LastWriteTime > mostRecentFile.LastWriteTime)
+                if (scene.GetComponent<SceneFileScr>().nameTag.Contains(fileInfo.Name))
                 {
-                    mostRecentFile = fileInfo;
+                    if (!scene.GetComponent<SceneFileScr>().nameTag.Contains("meta"))
+                    {
+                        mostRecentFile = fileInfo;
+                    }
                 }
             }
+
+            
         }
+
+
+
+        //foreach (FileInfo fileInfo in saveFiles)
+        //{
+        //    if (mostRecentFile == null)
+        //    {
+        //        mostRecentFile = fileInfo;
+        //    }
+        //    else
+        //    {
+        //        if (fileInfo.LastWriteTime > mostRecentFile.LastWriteTime)
+        //        {
+        //            mostRecentFile = fileInfo;
+        //        }
+        //    }
+        //}
 
         if (mostRecentFile != null)
         {

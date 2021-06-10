@@ -129,7 +129,7 @@ public class SceneManager : MonoBehaviour
 
     }
 
-    public void LoadScene(string sceneName)
+    public void LoadScene()
     {
         string saveString = SaveSystem.Load();
         if (saveString != null)
@@ -137,6 +137,11 @@ public class SceneManager : MonoBehaviour
             SaveObject saveObject = JsonUtility.FromJson<SaveObject>(saveString);
 
             // Here apply all data to manager
+
+            if (Manager.Instance != null)
+            {
+                Manager.Instance.LoadObjects(saveObject.objects);
+            }
         }
         else
         {
