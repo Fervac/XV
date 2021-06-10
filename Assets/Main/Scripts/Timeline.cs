@@ -309,7 +309,6 @@ public class Timeline : MonoBehaviour
 
     private bool isPlaying = false;
     private bool isRecording = false;
-    private bool startedRecord = false;
     private bool tooltip = false;
 
     public List<Color> eventStyle = new List<Color>();
