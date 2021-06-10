@@ -14,6 +14,7 @@ public enum actionType
 
 #region Action Classes
 
+[System.Serializable]
 public class Action
 {
     private int index;
@@ -26,7 +27,9 @@ public class Action
     public actionType type;
 
     public GameObject object_operator;
+    public int op_iid = 0;
     public GameObject object_target;
+    public int tar_iid = 0;
 
     public Vector3 start_pos;
     public Vector3 end_pos;
@@ -57,7 +60,11 @@ public class Action
         this.type = type;
 
         this.object_operator = object_operator;
+        if (object_operator)
+            this.op_iid = object_operator.GetInstanceID();
         this.object_target = object_target;
+        if (object_target)
+            this.tar_iid = object_target.GetInstanceID();
 
         this.name = GetActionFullName(type);
     }
@@ -74,8 +81,12 @@ public class Action
         this.type = type;
 
         this.object_operator = object_operator;
+        if (object_operator)
+            this.op_iid = object_operator.GetInstanceID();
         this.object_target = object_target;
-        
+        if (object_target)
+            this.tar_iid = object_target.GetInstanceID();
+
         this.start_pos = start_pos;
         this.end_pos = end_pos;
 
@@ -97,7 +108,11 @@ public class Action
         this.type = type;
 
         this.object_operator = object_operator;
+        if (object_operator)
+            this.op_iid = object_operator.GetInstanceID();
         this.object_target = object_target;
+        if (object_target)
+            this.tar_iid = object_target.GetInstanceID();
 
         this.start_pos = start_pos;
         this.end_pos = end_pos;
@@ -109,6 +124,39 @@ public class Action
         this.angle = Vector3.SignedAngle(object_operator.transform.forward, dir, new Vector3(0, 1, 0));
 
         this.name = GetActionFullName(type);
+    }
+
+    public Action(Action act)
+    {
+        index = act.index;
+        
+        duration = act.duration;
+
+        start = act.start;
+        end = act.end;
+
+        type = act.type;
+
+        object_operator = act.object_operator;
+        op_iid = act.op_iid;
+        object_target = act.object_target;
+        tar_iid = act.tar_iid;
+
+        start_pos = act.start_pos;
+        end_pos = act.end_pos;
+
+        target_pos = act.target_pos;
+        target_rot = act.target_rot;
+
+        start_forward = act.start_forward;
+        end_forward = act.end_forward;
+
+        angle = act.angle;
+
+        name = act.name;
+        notes = act.notes;
+
+        umount = act.umount;
     }
 
     #endregion

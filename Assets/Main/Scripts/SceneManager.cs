@@ -111,8 +111,11 @@ public class SceneManager : MonoBehaviour
     {
         SaveObject saveObject = new SaveObject
         {
-            objects = null,
+            actionsList = Manager.Instance.timeline.actions
         };
+
+        saveObject.SetObjectList(Manager.Instance.loadedObjects);
+        saveObject.timelineDuration = Manager.Instance.GetDuration();
 
         string json = JsonUtility.ToJson(saveObject);
         string nameTag = SaveSystem.Save(json);
@@ -140,7 +143,9 @@ public class SceneManager : MonoBehaviour
 
             if (Manager.Instance != null)
             {
-                Manager.Instance.LoadObjects(saveObject.objects);
+                Dictionary<int, GameObject> instances;
+                instances = Manager.Instance.LoadObjects(saveObject.objectsList);
+                Manager.Instance.LoadTimeline(saveObject.actionsList, instances);
             }
         }
         else
@@ -156,6 +161,18 @@ public class SceneManager : MonoBehaviour
 
     private class SaveObject
     {
-        public List<GameObject> objects;
+        public List<GameObjectSaveData> objectsList;
+
+        public List<Action> actionsList;
+
+        public float timelineDuration = 15f;
+
+        // Cannot save GameObject like this, it will only save object instanceId which is not really useful...
+        public void SetObjectList(List<GameObject> _objectsList)
+        {
+            objectsList = new List<GameObjectSaveData>();
+            foreach (GameObject _object in _objectsList)
+                objectsList.Add(new GameObjectSaveData(_object));
+        }
     }
 }

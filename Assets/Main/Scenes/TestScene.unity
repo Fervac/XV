@@ -3527,6 +3527,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   loadedObjects: []
+  AssetsListPanel: {fileID: 1422857977}
   ObjetParent: {fileID: 1158486075}
   PopupPrefab: {fileID: 5159003565746979662, guid: 12762a14704b9ef4082ef4b5bb17da00, type: 3}
   GlobalCanvas: {fileID: 653365445}
@@ -4634,6 +4635,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   duration: 15
+  actions: []
   eventPrefab: {fileID: 8365694200753453306, guid: d527dd03241b7e646948afc8ad593a4f, type: 3}
   contentParent: {fileID: 321713484}
   timeCursorIndicator: {fileID: 1423189815}
@@ -4781,6 +4783,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _event: {fileID: 0}
+  current:
+    duration: 0
+    start: 0
+    end: 0
+    type: 0
+    object_operator: {fileID: 0}
+    op_iid: 0
+    object_target: {fileID: 0}
+    tar_iid: 0
+    start_pos: {x: 0, y: 0, z: 0}
+    end_pos: {x: 0, y: 0, z: 0}
+    target_pos: {x: 0, y: 0, z: 0}
+    target_rot: {x: 0, y: 0, z: 0}
+    start_forward: {x: 0, y: 0, z: 0}
+    end_forward: {x: 0, y: 0, z: 0}
+    angle: 0
+    name: 
+    notes: 
+    umount: 0
   AnimName: {fileID: 483773461}
   AnimNotes: {fileID: 1911893239}
   AnimST: {fileID: 497777272}

@@ -52,6 +52,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 	private void GhostMode()
     {
 		ghostObject = Instantiate(prefab, Camera.main.ScreenToWorldPoint(transform.position), Quaternion.identity);
+		ghostObject.name = ghostObject.name + "-ghost";
 
 		Renderer[] rends;
 		rends = ghostObject.GetComponentsInChildren<Renderer>();

@@ -18,7 +18,17 @@ public class PopupObjectMenu : MonoBehaviour
     private GameObject colorButton;
     private GameObject closeButton;
     private InputField nameField;
-    private String nameTag;
+    private string nameTag;
+
+    public string PubNameTag
+    {
+        get { return nameTag; }
+        set
+        {
+            nameTag = value;
+            nameField.text = value;
+        }
+    }
 
     private FlexibleColorPicker fcp;
     private bool _coloring = false;
@@ -150,9 +160,10 @@ public class PopupObjectMenu : MonoBehaviour
         colorButton.GetComponent<Button>().onClick.AddListener(() => ColorObject());
         closeButton.GetComponent<Button>().onClick.AddListener(() => CloseWindow());
 
-        nameField.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
-        nameTag = this.gameObject.name;
+        if (string.IsNullOrEmpty(nameTag))
+            nameTag = this.gameObject.name;
         nameField.text = nameTag;
+        nameField.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
 
         manager = this.GetComponent<ModelManager>();
         takeState = true;
@@ -161,8 +172,9 @@ public class PopupObjectMenu : MonoBehaviour
 
     private void ValueChangeCheck()
     {
+        if (string.IsNullOrEmpty(nameField.text))
+            return;
         nameTag = nameField.text;
-        this.gameObject.name = nameTag;
         // We should update the timeline line (when modifying the gameobject name)
         //Manager.Instance.UpdateActor(manager.);
     }

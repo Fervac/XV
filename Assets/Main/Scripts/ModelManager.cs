@@ -33,6 +33,8 @@ public class ModelManager : MonoBehaviour
     private List<Vector3> pos_hist = new List<Vector3>();
     private List<Vector3> rot_hist = new List<Vector3>();
 
+    public string prefabIdentifier = "";
+
     void Start()
     {
         isMoving = false;
