@@ -49,16 +49,31 @@ public static class SaveSystem
         }
     }
 
-    public static string Save(string saveString)
+    public static string Save(string saveString, string saveName = "")
     {
+        string trueName = "";
         int saveNumber = 1;
-        while (File.Exists(SAVE_FOLDER + "save_" + saveNumber + ".json"))
-        {
-            saveNumber++;
-        }
-        File.WriteAllText(SAVE_FOLDER + "/save_" + saveNumber + ".json", saveString);
 
-        return (SAVE_FOLDER + "save_" + saveNumber + ".json");
+        if (string.IsNullOrEmpty(saveName))
+        {
+            while (File.Exists(SAVE_FOLDER + "save_" + saveNumber + ".json"))
+                saveNumber++;
+            trueName = "save_" + saveNumber;
+        }
+        else
+        {
+            if (!File.Exists(SAVE_FOLDER + saveName + ".json"))
+                trueName = saveName;
+            else
+            {
+                while (File.Exists(SAVE_FOLDER + saveName + "(" + saveNumber + ").json"))
+                    saveNumber++;
+                trueName = saveName + "(" + saveNumber + ")";
+            }
+        }
+        File.WriteAllText(SAVE_FOLDER + trueName + ".json", saveString);
+
+        return (SAVE_FOLDER + trueName + ".json");
     }
 
     public static string Load()

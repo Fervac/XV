@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 public class Manager : MonoBehaviour
@@ -46,6 +47,9 @@ public class Manager : MonoBehaviour
 
     private bool popup = true;
     public GameObject sceneSelected;
+
+    public GameObject SceneInput;
+    public string currentSceneName = "";
 
     private void Start()
     {
@@ -199,6 +203,12 @@ public class Manager : MonoBehaviour
         return assets;
     }
 
+    public void UpdateSceneName(string sceneName)
+    {
+        this.currentSceneName = sceneName.Trim();
+        this.currentSceneName = Regex.Replace(this.currentSceneName, @"[^a-zA-Z0-9 _]", "");
+    }
+
     #region SaveLoadManagement
 
     public void ResetScene()
@@ -208,6 +218,7 @@ public class Manager : MonoBehaviour
         foreach (GameObject obj in SceneObjects)
         {
             DeleteFromLoadedList(obj);
+            obj.GetComponent<PopupObjectMenu>().DestroyFromAfar();
             if (GameObject.Find(obj.name))
                 Destroy(obj);
         }
