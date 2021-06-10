@@ -28,6 +28,7 @@ public class SceneManager : MonoBehaviour
     private void Start()
     {
         FileInfo[] saveFiles = SaveSystem.GetSaveFiles();
+        Manager.Instance.SwitchShowWindow(ScenePanel);
 
         foreach (FileInfo fileInfo in saveFiles)
         {

@@ -471,6 +471,7 @@ public class ModelManager : MonoBehaviour
             {
                 if (this.mount)
                 {
+                    this.mount.transform.position = this.transform.position;
                     this.mount.transform.SetParent(this.mount.GetComponent<ModelManager>().init_parent.transform);
                     this.mount.GetComponent<PopupObjectMenu>().clickable = true;
                     this.mount.GetComponent<BoxCollider>().enabled = true;
