@@ -34,11 +34,11 @@ public class ObjFromFileTest : MonoBehaviour
         objPath = string.Empty;
 
 
-        //FileBrowser.SetFilters(true, new FileBrowser.Filter("Images", ".jpg", ".png"), new FileBrowser.Filter("Text Files", ".txt", ".pdf"));
+        FileBrowser.SetFilters(false, new FileBrowser.Filter(".obj", ".obj"));
 
         FileBrowser.SetDefaultFilter(".obj");
 
-        FileBrowser.SetExcludedExtensions(".lnk", ".tmp", ".zip", ".rar", ".exe");
+        FileBrowser.SetExcludedExtensions(".lnk", ".tmp", ".zip", ".rar", ".exe", ".fbx", ".png", ".blend", ".txt");
 
         //FileBrowser.AddQuickLink("Users", "C:\\Users", null);
 
