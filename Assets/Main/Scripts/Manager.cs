@@ -183,6 +183,11 @@ public class Manager : MonoBehaviour
         window.SetActive(!window.activeInHierarchy);
     }
 
+    public void QuitApp()
+    {
+        Application.Quit();
+    }
+
     public List<GameObject> GetAssetsList()
     {
         List<GameObject> assets = new List<GameObject>();
