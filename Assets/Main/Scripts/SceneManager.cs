@@ -145,7 +145,7 @@ public class SceneManager : MonoBehaviour
             {
                 Dictionary<int, GameObject> instances;
                 instances = Manager.Instance.LoadObjects(saveObject.objectsList);
-                Manager.Instance.LoadTimeline(saveObject.actionsList, instances);
+                Manager.Instance.LoadTimeline(saveObject.actionsList, instances, saveObject.timelineDuration);
             }
         }
         else

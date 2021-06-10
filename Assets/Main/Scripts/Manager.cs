@@ -262,26 +262,32 @@ public class Manager : MonoBehaviour
         return instances;
     }
 
-    public void LoadTimeline(List<Action> actions, Dictionary<int, GameObject> instances)
+    public void LoadTimeline(List<Action> actions, Dictionary<int, GameObject> instances, float duration)
     {
         // Clear the timeline before loading new actions
         timeline.ClearTimeline();
 
+        timeline.SetDuration(duration);
+
         Action act = null;
-        GameObject _op = null;
+        GameObject _op = null, _target = null;
 
         foreach (Action action in actions)
         {
             act = new Action(action);
 
-            if (action.op_iid == 0)
+            if (action.op_iid == 0 || !instances.TryGetValue(action.op_iid, out _op))
+            {
+                Debug.LogError("Error ! Bad operator instanceId : " + action.op_iid);
                 continue;
-            _op = instances[action.op_iid];
+            }
 
             act.object_operator = _op;
-            if (action.tar_iid != 0)
-                act.object_target = instances[action.tar_iid];
+            
+            if (action.tar_iid != 0 && instances.TryGetValue(action.tar_iid, out _target))
+                act.object_target = _target;
 
+            print(_op);
             timeline.AddAction(act, _op);
         }
     }
