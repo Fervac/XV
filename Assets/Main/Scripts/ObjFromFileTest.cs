@@ -88,7 +88,7 @@ public class ObjFromFileTest : MonoBehaviour
                 objImporter = loadedObject.AddComponent<ObjectImporter>();
             }
 
-            objImporter.ImportModelAsync(objectName, objPath, null, importOptions);
+            objImporter.ImportModelAsync(objectName, objPath, loadedObject.transform, importOptions);
 
             //loadedObject = new OBJLoader().Load(objPath);
 
