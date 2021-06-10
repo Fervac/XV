@@ -283,11 +283,14 @@ public class Manager : MonoBehaviour
             }
 
             act.object_operator = _op;
-            
-            if (action.tar_iid != 0 && instances.TryGetValue(action.tar_iid, out _target))
-                act.object_target = _target;
+            act.op_iid = _op.GetInstanceID();
 
-            print(_op);
+            if (action.tar_iid != 0 && instances.TryGetValue(action.tar_iid, out _target))
+            {
+                act.object_target = _target;
+                act.tar_iid = _target.GetInstanceID();
+            }
+
             timeline.AddAction(act, _op);
         }
     }
