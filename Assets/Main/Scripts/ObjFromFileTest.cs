@@ -5,6 +5,8 @@ using System.IO;
 using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.UI;
+using AsImpL;
+using UnityEngine.EventSystems;
 
 public class ObjFromFileTest : MonoBehaviour
 {
@@ -16,6 +18,16 @@ public class ObjFromFileTest : MonoBehaviour
     public Transform content;
     public GameObject contentPrefab;
     public Sprite notFound;
+
+    [SerializeField]
+    private string objectName = "MyObject";
+    [SerializeField]
+    private ImportOptions importOptions = new ImportOptions();
+
+    [SerializeField]
+    private PathSettings pathSettings;
+
+    private ObjectImporter objImporter;
 
     public void OpenExplorer()
     {
@@ -37,6 +49,13 @@ public class ObjFromFileTest : MonoBehaviour
     {
         yield return FileBrowser.WaitForLoadDialog(FileBrowser.PickMode.FilesAndFolders, true, null, null, "Load Files and Folders", "Load");
 
+        //EventSystem[] sceneEventSystems = FindObjectsOfType<EventSystem>();
+
+        //foreach (EventSystem evnt in sceneEventSystems)
+        //{
+        //    evnt.gameObject.AddComponent<StandaloneInputModule>();
+        //}
+
         //Debug.Log(FileBrowser.Success);
 
         if (FileBrowser.Success)
@@ -51,7 +70,6 @@ public class ObjFromFileTest : MonoBehaviour
             string destinationPath = Path.Combine(FileBrowserHelpers.GetDirectoryName(FileBrowser.Result[0]), FileBrowserHelpers.GetFilename(FileBrowser.Result[0]));
             objPath = destinationPath;
 
-            Debug.Log(objPath);
         }
     }
 
@@ -63,7 +81,16 @@ public class ObjFromFileTest : MonoBehaviour
         }
         else
         {
-            loadedObject = new OBJLoader().Load(objPath);
+            loadedObject = new GameObject();
+            objImporter = loadedObject.GetComponent<ObjectImporter>();
+            if (objImporter == null)
+            {
+                objImporter = loadedObject.AddComponent<ObjectImporter>();
+            }
+
+            objImporter.ImportModelAsync(objectName, objPath, null, importOptions);
+
+            //loadedObject = new OBJLoader().Load(objPath);
 
             GameObject tmp = Manager.Instance.AddToLoadedList(loadedObject);
 

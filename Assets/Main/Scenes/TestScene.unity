@@ -4230,6 +4230,23 @@ MonoBehaviour:
   content: {fileID: 1422857978}
   contentPrefab: {fileID: 3980012283415062222, guid: e24ed27d3a00c4044b0c0c52d6eee06f, type: 3}
   notFound: {fileID: 21300000, guid: 8417d14c28ad3d14984c404ca451e53f, type: 3}
+  objectName: MyObject
+  importOptions:
+    zUp: 1
+    litDiffuse: 0
+    convertToDoubleSided: 0
+    modelScaling: 1
+    reuseLoaded: 0
+    inheritLayer: 0
+    buildColliders: 0
+    colliderConvex: 0
+    colliderTrigger: 0
+    use32bitIndices: 1
+    hideWhileLoading: 0
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+  pathSettings: {fileID: 0}
 --- !u!1 &766905006
 GameObject:
   m_ObjectHideFlags: 0
