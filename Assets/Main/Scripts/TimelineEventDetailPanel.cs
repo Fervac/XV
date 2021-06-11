@@ -138,7 +138,6 @@ public class TimelineEventDetailPanel : MonoBehaviour
                 AnimET.text = current.end.ToString();
                 AnimDT.text = current.duration.ToString();
                 // Then callback to button event to update time/duration
-                print(_event);
                 _event.UpdateEvent();
             }
         }

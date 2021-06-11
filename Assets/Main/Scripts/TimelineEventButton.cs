@@ -223,8 +223,8 @@ public class TimelineEventButton : MonoBehaviour, IPointerClickHandler, IBeginDr
         this.end = _event.end;
         // Should hide the button if start or end is outside of timeline (due to duration being modified)
         //if (_event.duration != this.duration)
-        Resize();
         this.duration = _event.duration;
+        Resize();
         //print(start + " " + end + " " + duration);
 
         UpdatePositionByTime();
