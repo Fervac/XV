@@ -73,6 +73,7 @@ public class ObjFromFileTest : MonoBehaviour
         }
     }
 
+    [System.Obsolete]
     public void LoadObject()
     {
         if (!File.Exists(objPath))

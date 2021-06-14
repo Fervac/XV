@@ -34,6 +34,7 @@ namespace AsImpL
         /// Load a set of files with their own import options
         /// </summary>
         /// <param name="modelsInfo">List of file import entries</param>
+        [System.Obsolete]
         public void ImportModelListAsync(ModelImportInfo[] modelsInfo)
         {
             if (modelsInfo == null)
@@ -66,6 +67,7 @@ namespace AsImpL
         /// <summary>
         /// Import the list of objects in objectList.
         /// </summary>
+        [System.Obsolete]
         protected virtual void Start()
         {
             if (autoLoadOnStart)

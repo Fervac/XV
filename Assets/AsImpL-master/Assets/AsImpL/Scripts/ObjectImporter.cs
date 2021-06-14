@@ -166,6 +166,7 @@ namespace AsImpL
         /// <param name="absolutePath">Absolute path of the file to import</param>
         /// <param name="parentObject">Transform to which attach the new object (it can be null)</param>
         /// <param name="options">Import options</param>
+        [Obsolete]
         public void ImportFile(string absolutePath, Transform parentObject, ImportOptions options)
         {
             buildOptions = options;
@@ -179,6 +180,7 @@ namespace AsImpL
         /// <param name="absolutePath"></param>
         /// <param name="parentObject"></param>
         /// TODO: refactor this method, it is too long.
+        [Obsolete]
         private IEnumerator ImportFileAsync(string absolutePath, Transform parentObject)
         {
             Loader loader = CreateLoader(absolutePath);
@@ -378,6 +380,7 @@ namespace AsImpL
         /// <param name="filePath"></param>
         /// <param name="parentObj"></param>
         /// <param name="options"></param>
+        [Obsolete]
         public void ImportModelAsync(string objName, string filePath, Transform parentObj, ImportOptions options)
         {
             if (loaderList == null)

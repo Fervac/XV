@@ -189,6 +189,11 @@ public class Manager : MonoBehaviour
         Application.Quit();
     }
 
+    public void OpenVideoFolder()
+    {
+        Application.OpenURL(RockVR.Video.PathConfig.SaveFolder);
+    }
+
     public List<GameObject> GetAssetsList()
     {
         List<GameObject> assets = new List<GameObject>();

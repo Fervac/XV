@@ -11,6 +11,14 @@ public enum overlayType
     MOUNT
 }
 
+public enum cameraMode
+{
+    Overview,
+    FirstPerson,
+    FreeOverview,
+    FreeFirstPerson
+}
+
 public class CameraManager : MonoBehaviour
 {
     public float mainSpeed = 100.0f; //regular speed
@@ -26,18 +34,38 @@ public class CameraManager : MonoBehaviour
     private float overlayTimer = 0.0f;
     private int overlayTimerModifier = 1;
 
+    public cameraMode camMode = cameraMode.Overview;
+
+    private Vector3 lastMouse = new Vector3();
+    private float camSens = 0.250f;
+
+    private Vector3 OverPos;
+    private Vector3 OverRot;
+
+    private Vector3 FirstPPos;
+    private Vector3 FirstPRot;
+
     void Update()
     {
+        HandleCommands();
+
+        // Should only work in Overview mode
         if (overlay && _operator)
             MouseOverlay();
-        /*lastMouse = Input.mousePosition - lastMouse;
-        lastMouse = new Vector3(-lastMouse.y * camSens, lastMouse.x * camSens, 0);
-        lastMouse = new Vector3(transform.eulerAngles.x + lastMouse.x, transform.eulerAngles.y + lastMouse.y, 0);
-        transform.eulerAngles = lastMouse;
-        lastMouse = Input.mousePosition;*/
-        //Mouse  camera angle done.  
 
-        //Keyboard commands
+        // Lookat
+        if (camMode == cameraMode.FreeOverview || camMode == cameraMode.FreeFirstPerson)
+        {
+            lastMouse = Input.mousePosition - lastMouse;
+            lastMouse = new Vector3(-lastMouse.y * camSens, lastMouse.x * camSens, 0);
+            lastMouse = new Vector3(transform.eulerAngles.x + lastMouse.x, transform.eulerAngles.y + lastMouse.y, 0);
+            transform.eulerAngles = lastMouse;
+            lastMouse = Input.mousePosition;
+        }
+        else
+            lastMouse = Input.mousePosition;
+
+        // Move commands
         Vector3 p = GetBaseInput();
         if (p.sqrMagnitude > 0)
         {
@@ -46,10 +74,13 @@ public class CameraManager : MonoBehaviour
             Vector3 newPosition = transform.position;
             transform.Translate(p);
             newPosition.x = transform.position.x;
+            if (camMode == cameraMode.FreeOverview)
+                newPosition.y = transform.position.y;
             newPosition.z = transform.position.z;
             transform.position = newPosition;
         }
 
+        // Rotation commands
         Vector3 r = GetRotationInput();
         if (r.sqrMagnitude > 0)
         {
@@ -69,6 +100,55 @@ public class CameraManager : MonoBehaviour
         }
     }
 
+
+    private void HandleCommands()
+    {
+        if (camMode != cameraMode.Overview && camMode != cameraMode.FreeOverview)
+        {
+            FirstPPos = this.transform.position;
+            FirstPRot = this.transform.eulerAngles;
+        }
+        else
+        {
+            OverPos = this.transform.position;
+            OverRot = this.transform.eulerAngles;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Keypad0))
+            camMode = cameraMode.Overview;
+        if (Input.GetKeyDown(KeyCode.Keypad1))
+            camMode = cameraMode.FreeOverview;
+        if (Input.GetKeyDown(KeyCode.Keypad2))
+            camMode = cameraMode.FirstPerson;
+        if (Input.GetKeyDown(KeyCode.Keypad3))
+            camMode = cameraMode.FreeFirstPerson;
+
+
+        // Hide cursor when camera mode is not overview.
+        if (camMode == cameraMode.Overview)
+        {
+            /*this.transform.position = OverPos;
+            this.transform.eulerAngles = OverRot;*/
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
+        else
+        {
+            /*this.transform.position = FirstPPos;
+            this.transform.eulerAngles = FirstPRot;*/
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+
+        // Allow user to move timeline using scroll button
+        if (camMode != cameraMode.Overview && Input.mouseScrollDelta.y != 0.0f)
+        {
+            float cursor = Manager.Instance.GetTimeCursor();
+            float mod = Input.mouseScrollDelta.y >= 0.0f ? 1 : -1;
+
+            Manager.Instance.timeline.UpdateCursor((cursor + 0.05f * mod) / Manager.Instance.GetDuration());
+        }
+    }
     private void MouseOverlay()
     {
         Vector3 endpoint = new Vector3(0, 0, 0);
@@ -154,6 +234,14 @@ public class CameraManager : MonoBehaviour
             if (Input.GetKey(KeyCode.D))
             {
                 p_Velocity += new Vector3(velocityModifier, 0, 0);
+            }
+            if (Input.GetKey(KeyCode.LeftShift) && camMode == cameraMode.FreeOverview)
+            {
+                p_Velocity += new Vector3(0, -velocityModifier, 0);
+            }
+            if (Input.GetKey(KeyCode.LeftControl) && camMode == cameraMode.FreeOverview)
+            {
+                p_Velocity += new Vector3(0, velocityModifier, 0);
             }
         }
         return p_Velocity;

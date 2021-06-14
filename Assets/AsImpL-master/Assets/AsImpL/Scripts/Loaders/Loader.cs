@@ -147,6 +147,7 @@ namespace AsImpL
         /// <param name="absolutePath">absolute file path</param>
         /// <param name="parentObj">Transform to which attach the loaded object (null=scene)</param>
         /// <returns>You can use StartCoroutine( loader.Load(...) )</returns>
+        [Obsolete]
         public IEnumerator Load(string objName, string absolutePath, Transform parentObj)
         {
             string fileName = Path.GetFileName(absolutePath);
@@ -254,6 +255,7 @@ namespace AsImpL
         /// <param name="objName">Name of the main game object (model root)</param>
         /// <param name="parentTransform">transform to which the model root will be attached (if null it will be a root aobject)</param>
         /// <remarks>This is called by Load() method</remarks>
+        [Obsolete]
         protected IEnumerator Build(string absolutePath, string objName, Transform parentTransform)
         {
             float prevTime = Time.realtimeSinceStartup;
@@ -507,7 +509,7 @@ namespace AsImpL
             return texPath;
         }
 
-
+        [Obsolete]
         private IEnumerator LoadMaterialTexture(string basePath, string path)
         {
             loadedTexture = null;
@@ -519,7 +521,7 @@ namespace AsImpL
 
                 if (uwr.isNetworkError || uwr.isHttpError)
                 {
-                    Debug.LogError(uwr.error);
+                    Debug.LogError(uwr.error); 
                 }
                 else
                 {

@@ -716,6 +716,10 @@ public class Timeline : MonoBehaviour
         if (isPlaying)
             return;
         timeCursor = value * duration;
+        if (timeCursor < 0.0f)
+            timeCursor = 0.0f;
+        else if (timeCursor > duration)
+            timeCursor = duration;
         UpdateCursorView();
         UpdateOverview();
 
@@ -743,14 +747,17 @@ public class Timeline : MonoBehaviour
     public void PauseTimeline() { isPlaying = false; if (isRecording) StopRecording(); }
     public void StopTimeline() { isPlaying = false; timeCursor = 0.0f; UpdateCursorView(); UpdateOverview(); if (isRecording) StopRecording(); }
     public void RecordTimeline() {
-        ManageRecording();
-        isRecording = !isRecording;
-        isPlaying = !isPlaying;
+        if (ManageRecording())
+        {
+            isRecording = !isRecording;
+            isPlaying = !isPlaying;
+        }
     }
 
-    private void ManageRecording()
+    private bool ManageRecording()
     {
-        if (RockVR.Video.VideoCaptureCtrl.instance.status == RockVR.Video.VideoCaptureCtrl.StatusType.NOT_START)
+        if (RockVR.Video.VideoCaptureCtrl.instance.status == RockVR.Video.VideoCaptureCtrl.StatusType.NOT_START
+            || RockVR.Video.VideoCaptureCtrl.instance.status == RockVR.Video.VideoCaptureCtrl.StatusType.FINISH)
         {
             RockVR.Video.VideoCaptureCtrl.instance.StartCapture();
         }
@@ -760,16 +767,15 @@ public class Timeline : MonoBehaviour
         }
         else if (RockVR.Video.VideoCaptureCtrl.instance.status == RockVR.Video.VideoCaptureCtrl.StatusType.STOPPED)
         {
-            print("Processing");
+            Debug.Log("Error : last capture is processing. Unable to capture.");
+            return false;
         }
-        else if (RockVR.Video.VideoCaptureCtrl.instance.status == RockVR.Video.VideoCaptureCtrl.StatusType.FINISH)
-        {
-            print("Done and created");
-        }
+        return true;
     }
 
     private void StopRecording()
     {
+        print("Stopping the recording");
         UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
         isRecording = false;
         RockVR.Video.VideoCaptureCtrl.instance.StopCapture();
@@ -845,5 +851,10 @@ public class Timeline : MonoBehaviour
             Play(timeCursor == duration);
         if (Input.GetKeyDown(KeyCode.Space))
             isPlaying = !isPlaying;
+        if (Camera.main.GetComponent<CameraManager>().camMode != cameraMode.Overview)
+        {
+            if (Input.GetKeyDown(KeyCode.R))
+                RecordTimeline();
+        }
     }
 }

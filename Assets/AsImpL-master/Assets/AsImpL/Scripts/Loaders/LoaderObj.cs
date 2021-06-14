@@ -621,7 +621,7 @@ namespace AsImpL
             return new Color(ParseFloat(p[1]), ParseFloat(p[2]), ParseFloat(p[3]));
         }
 
-
+        [Obsolete]
         private IEnumerator LoadOrDownloadText(string url, bool notifyErrors = true)
         {
             loadedText = null;
