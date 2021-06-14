@@ -14,8 +14,8 @@ public enum overlayType
 public enum cameraMode
 {
     Overview,
-    FirstPerson,
     FreeOverview,
+    FirstPerson,
     FreeFirstPerson
 }
 
@@ -37,33 +37,49 @@ public class CameraManager : MonoBehaviour
     public cameraMode camMode = cameraMode.Overview;
 
     private Vector3 lastMouse = new Vector3();
-    private float camSens = 0.250f;
 
-    private Vector3 OverPos;
+    /*private Vector3 OverPos;
     private Vector3 OverRot;
 
     private Vector3 FirstPPos;
-    private Vector3 FirstPRot;
+    private Vector3 FirstPRot;*/
+
+    public Camera firstPersonCamera;
+
+    public float mouseSensitivity = 750f;
 
     void Update()
     {
         HandleCommands();
 
+        if (camMode == cameraMode.FreeOverview || camMode == cameraMode.Overview)
+            Overview();
+    }
+
+    private void Overview()
+    {
         // Should only work in Overview mode
         if (overlay && _operator)
             MouseOverlay();
 
         // Lookat
-        if (camMode == cameraMode.FreeOverview || camMode == cameraMode.FreeFirstPerson)
+        if (camMode == cameraMode.FreeOverview)
         {
-            lastMouse = Input.mousePosition - lastMouse;
-            lastMouse = new Vector3(-lastMouse.y * camSens, lastMouse.x * camSens, 0);
+            lastMouse = new Vector3(-Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime, Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime, 0);
+            lastMouse.x = Mathf.Clamp(lastMouse.x, -90f, 90f);
+            lastMouse.y = Mathf.Clamp(lastMouse.y, -90f, 90f);
             lastMouse = new Vector3(transform.eulerAngles.x + lastMouse.x, transform.eulerAngles.y + lastMouse.y, 0);
             transform.eulerAngles = lastMouse;
             lastMouse = Input.mousePosition;
         }
-        else
-            lastMouse = Input.mousePosition;
+        if (camMode == cameraMode.Overview)
+        {
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                this.transform.eulerAngles = new Vector3(28.84f, 0, 0);
+                this.transform.position = new Vector3(this.transform.position.x, 4f, this.transform.position.z);
+            }
+        }
 
         // Move commands
         Vector3 p = GetBaseInput();
@@ -100,42 +116,94 @@ public class CameraManager : MonoBehaviour
         }
     }
 
-
     private void HandleCommands()
     {
-        if (camMode != cameraMode.Overview && camMode != cameraMode.FreeOverview)
-        {
-            FirstPPos = this.transform.position;
-            FirstPRot = this.transform.eulerAngles;
-        }
-        else
-        {
-            OverPos = this.transform.position;
-            OverRot = this.transform.eulerAngles;
-        }
+        cameraMode oldMode = camMode;
+        bool modeChanged = false;
 
         if (Input.GetKeyDown(KeyCode.Keypad0))
+        {
             camMode = cameraMode.Overview;
+            modeChanged = true;
+        }
         if (Input.GetKeyDown(KeyCode.Keypad1))
+        {
             camMode = cameraMode.FreeOverview;
-        if (Input.GetKeyDown(KeyCode.Keypad2))
+            modeChanged = true;
+        }
+        if (Input.GetKeyDown(KeyCode.Keypad2) && Manager.Instance.characters.Count > 0)
+        {
             camMode = cameraMode.FirstPerson;
-        if (Input.GetKeyDown(KeyCode.Keypad3))
+            modeChanged = true;
+        }
+        if (Input.GetKeyDown(KeyCode.Keypad3) && Manager.Instance.characters.Count > 0)
+        {
             camMode = cameraMode.FreeFirstPerson;
+            modeChanged = true;
+        }
+
+        /*
+         * Not all cases are interesting.
+         * We won't care about the change between Overview and FreeOverview which use the same camera.
+         * We will only care about first person change (FP and FFP) and FP/FFP to Overview.
+         */
+        if (modeChanged)
+        {
+            if (oldMode <= cameraMode.FreeOverview && camMode >= cameraMode.FirstPerson)
+            {
+                // Select first person cam.
+                // Disable main cam et enable sub cam
+                GameObject character = Manager.Instance.GetNextFirstPerson();
+                if (character)
+                {
+                    Camera cam = character.GetComponent<CharacterManager>().cam.GetComponent<Camera>();
+                    cam.enabled = true;
+                    Camera.main.enabled = false;
+                    character.GetComponent<CharacterManager>().TogglePlayer();
+                }
+            }
+            else if (oldMode > cameraMode.FreeOverview && camMode >= cameraMode.FirstPerson)
+            {
+                if (oldMode == camMode)
+                {
+                    // Select new sub camera is available (meaning more than one character present)
+                    GameObject character = Manager.Instance.GetCurrentFirstPerson();
+                    GameObject nextCharacter = Manager.Instance.GetNextFirstPerson();
+                    if (character && nextCharacter && character != nextCharacter)
+                    {
+                        Camera cam = character.GetComponent<CharacterManager>().cam.GetComponent<Camera>();
+                        cam.enabled = false;
+                        character.GetComponent<CharacterManager>().TogglePlayer();
+                        cam = nextCharacter.GetComponent<CharacterManager>().cam.GetComponent<Camera>();
+                        cam.enabled = true;
+                        nextCharacter.GetComponent<CharacterManager>().TogglePlayer();
+                    }
+                }
+                // The other case is a simple update which tell the characterManager if the player can control the character and not simply being in the player 
+            }
+            else if (oldMode > cameraMode.FreeOverview && camMode <= cameraMode.FreeOverview)
+            {
+                // Enable main cam and disable sub cam
+                GameObject character = Manager.Instance.GetCurrentFirstPerson();
+                if (character)
+                {
+                    Camera cam = character.GetComponent<CharacterManager>().cam.GetComponent<Camera>();
+                    cam.enabled = false;
+                    character.GetComponent<CharacterManager>().TogglePlayer();
+                }
+                Manager.Instance.camKaren.GetComponent<Camera>().enabled = true;
+            }
+        }
 
 
         // Hide cursor when camera mode is not overview.
         if (camMode == cameraMode.Overview)
         {
-            /*this.transform.position = OverPos;
-            this.transform.eulerAngles = OverRot;*/
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
         }
         else
         {
-            /*this.transform.position = FirstPPos;
-            this.transform.eulerAngles = FirstPRot;*/
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
         }

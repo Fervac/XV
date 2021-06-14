@@ -851,7 +851,7 @@ public class Timeline : MonoBehaviour
             Play(timeCursor == duration);
         if (Input.GetKeyDown(KeyCode.Space))
             isPlaying = !isPlaying;
-        if (Camera.main.GetComponent<CameraManager>().camMode != cameraMode.Overview)
+        if (Manager.Instance.camKaren.camMode != cameraMode.Overview)
         {
             if (Input.GetKeyDown(KeyCode.R))
                 RecordTimeline();

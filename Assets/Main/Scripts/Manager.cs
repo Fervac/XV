@@ -52,10 +52,63 @@ public class Manager : MonoBehaviour
     public GameObject SceneInput;
     public string currentSceneName = "";
 
+    public List<GameObject> characters;
+    public int charIndex = 0;
+
+    public CameraManager camKaren;
     private void Start()
     {
         loadedObjects = new List<GameObject>();
+        characters = new List<GameObject>();
     }
+
+    #region CharacterViewManagement
+
+    public GameObject GetCurrentFirstPerson()
+    {
+        GameObject subCam = null;
+        if (characters.Count < 1)
+            return subCam;
+        if (charIndex < characters.Count)
+            return characters[charIndex];
+        else
+            return null;
+    }
+
+    public GameObject GetNextFirstPerson()
+    {
+        GameObject subCam = null;
+        if (characters.Count < 1)
+            return subCam;
+        else if (characters.Count == 1)
+        {
+            charIndex = 0;
+            subCam = characters[charIndex];
+        }
+        else
+        {
+            charIndex++;
+            if (charIndex >= characters.Count)
+                charIndex = 0;
+            subCam = characters[charIndex];
+        }
+
+        return subCam;
+    }
+
+    public void DeleteCharacter(GameObject character)
+    {
+        int index = characters.FindIndex(x => x == character);
+        if (index == -1)
+            return;
+        if (charIndex <= index)
+            charIndex--;
+        if (charIndex < 0)
+            charIndex = 0;
+        characters.Remove(character);
+    }
+
+    #endregion
 
     #region TimelineManagement
 
