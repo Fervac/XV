@@ -10,8 +10,11 @@ public class ClampPopup : MonoBehaviour
 
     private void Update()
     {
-        Vector3 popupPos = Camera.main.WorldToScreenPoint(transform.position);
-        popup.transform.position = popupPos;
+        if (Manager.Instance.camKaren.camMode == cameraMode.Overview)
+        {
+            Vector3 popupPos = Camera.main.WorldToScreenPoint(transform.position);
+            popup.transform.position = popupPos;
+        }
     }
 
     public void CreatePopup()

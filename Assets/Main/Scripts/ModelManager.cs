@@ -35,6 +35,10 @@ public class ModelManager : MonoBehaviour
 
     public string prefabIdentifier = "";
 
+    public bool posModifier = true;
+    private CharacterManager manager = null;
+    private bool managerCheck = false;
+
     void Start()
     {
         isMoving = false;
@@ -46,7 +50,8 @@ public class ModelManager : MonoBehaviour
         current = null;
         mount = null;
         items = new List<GameObject>();
-        SetCorrectOrientation();
+        if (posModifier)
+            SetCorrectOrientation();
 
         init_pos = this.transform.position;
         init_rot = this.transform.eulerAngles;
@@ -76,6 +81,7 @@ public class ModelManager : MonoBehaviour
 
         isMoving = false;
         angleSet = false;
+        Animate("", false, true);
     }
 
     #region Setup (orientation and bounds) functions
@@ -254,8 +260,26 @@ public class ModelManager : MonoBehaviour
 
     #region Animation Functions
 
+    public void Animate(string variable, bool state, bool reset = false)
+    {
+        if (managerCheck && !manager)
+            return;
+        else if (!managerCheck)
+        {
+            manager = this.GetComponent<CharacterManager>();
+            managerCheck = true;
+            if (!manager)
+                return;
+        }
+        if (!Manager.Instance.IsPlaying() || reset)
+            manager.resetAnim();
+        else
+            manager.animManager.SetBool(variable, state);
+    }
+
     public void Move(float forceDelta = -1f)
     {
+        Animate("Walk", true);
         if (forceDelta == -1f)
             moveDelta = Manager.Instance.GetTimeCursor() - current.start;
         else
@@ -336,6 +360,8 @@ public class ModelManager : MonoBehaviour
         current.object_target.transform.localScale = scale;
         if (takeDelta < (current.duration - (current.duration / 2f)))
         {
+            Animate("Walk", true);
+            Animate("Use", false);
             current.object_target.transform.localScale = new Vector3(1, 1, 1);
             current.object_target.transform.position = current.end_pos;
             current.object_target.transform.SetParent(GameObject.Find("Env/Objects").transform);
@@ -345,6 +371,8 @@ public class ModelManager : MonoBehaviour
         }
         else
         {
+            Animate("Walk", false);
+            Animate("Use", true);
             if (!items.Contains(current.object_target))
             {
                 items.Add(current.object_target);
@@ -391,6 +419,8 @@ public class ModelManager : MonoBehaviour
         current.object_target.transform.localScale = scale;
         if (takeDelta < (current.duration - (current.duration / 2f)))
         {
+            Animate("Walk", true);
+            Animate("Use", false);
             current.object_target.transform.localScale = new Vector3(0, 0, 0);
             current.object_target.transform.position = current.start_pos;
             current.object_target.transform.SetParent(this.transform);
@@ -399,6 +429,8 @@ public class ModelManager : MonoBehaviour
         }
         else
         {
+            Animate("Walk", false);
+            Animate("Use", true);
             if (items.Contains(current.object_target))
             {
                 items.Remove(current.object_target);
@@ -444,6 +476,8 @@ public class ModelManager : MonoBehaviour
         }
         if (useDelta < (current.duration - (current.duration / 2f)))
         {
+            Animate("Walk", true);
+            Animate("Use", false);
             /*
              * Here we are in the interval where the model should be moving toward the target.
              * We have to be aware of 2 cases.
@@ -466,6 +500,8 @@ public class ModelManager : MonoBehaviour
         }
         else
         {
+            Animate("Walk", false);
+            Animate("Use", true);
             /*
              * Here we are in the interval after the move. The mounting or unmounting should be done here.
              */

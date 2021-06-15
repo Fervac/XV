@@ -230,6 +230,22 @@ public class PopupObjectMenu : MonoBehaviour
         return (start);
     }
 
+    private void DisableCollider()
+    {
+        if (this.gameObject.GetComponent<BoxCollider>())
+            this.gameObject.GetComponent<BoxCollider>().enabled = false;
+        if (this.gameObject.GetComponent<CharacterController>())
+            this.gameObject.GetComponent<CharacterController>().enabled = false;
+    }
+
+    private void EnableCollider()
+    {
+        if (this.gameObject.GetComponent<BoxCollider>())
+            this.gameObject.GetComponent<BoxCollider>().enabled = true;
+        if (this.gameObject.GetComponent<CharacterController>())
+            this.gameObject.GetComponent<CharacterController>().enabled = true;
+    }
+
     #region Move action
 
     private void MoveObject()
@@ -242,7 +258,7 @@ public class PopupObjectMenu : MonoBehaviour
         Camera.main.GetComponent<CameraManager>().overlay = true;
         Camera.main.GetComponent<CameraManager>().overlay_type = overlayType.MOVE;
 
-        this.gameObject.GetComponent<BoxCollider>().enabled = false;
+        DisableCollider();
         CloseWindow();
     }
 
@@ -264,7 +280,7 @@ public class PopupObjectMenu : MonoBehaviour
         }
 
         // Reactivate box collider
-        this.gameObject.GetComponent<BoxCollider>().enabled = true;
+        EnableCollider();
         Manager.Instance.TogglePopUp(true, true);
 
         CloseWindow();
@@ -282,7 +298,7 @@ public class PopupObjectMenu : MonoBehaviour
             Camera.main.GetComponent<CameraManager>().overlay = true;
             Camera.main.GetComponent<CameraManager>().overlay_type = overlayType.MOUNT;
 
-            this.gameObject.GetComponent<BoxCollider>().enabled = false;
+            DisableCollider();
         }
         else
             UnMountObjectAction();
@@ -293,7 +309,7 @@ public class PopupObjectMenu : MonoBehaviour
     {
         if (Camera.main.GetComponent<CameraManager>().overlay_type != overlayType.MOUNT)
         {
-            this.gameObject.GetComponent<BoxCollider>().enabled = true;
+            EnableCollider();
             Manager.Instance.TogglePopUp(true, true);
             CloseWindow();
             return;
@@ -312,7 +328,7 @@ public class PopupObjectMenu : MonoBehaviour
             Manager.Instance.timeline.AddAction(mount, this.gameObject);
             manager.mountEver = _mount;
         }
-        this.gameObject.GetComponent<BoxCollider>().enabled = true;
+        EnableCollider();
         Manager.Instance.TogglePopUp(true, true);
         CloseWindow();
     }
@@ -328,7 +344,7 @@ public class PopupObjectMenu : MonoBehaviour
         Manager.Instance.timeline.AddAction(unmount, this.gameObject);
         manager.mountEver = null;
         _mountTarget = null;
-        this.gameObject.GetComponent<BoxCollider>().enabled = true;
+        EnableCollider();
         Manager.Instance.TogglePopUp(true, true);
     }
 
@@ -342,7 +358,7 @@ public class PopupObjectMenu : MonoBehaviour
         Camera.main.GetComponent<CameraManager>().overlay = true;
         Camera.main.GetComponent<CameraManager>().overlay_type = overlayType.TAKE;
 
-        this.gameObject.GetComponent<BoxCollider>().enabled = false;
+        DisableCollider();
         CloseWindow();
     }
 
@@ -350,7 +366,7 @@ public class PopupObjectMenu : MonoBehaviour
     {
         if (Camera.main.GetComponent<CameraManager>().overlay_type != overlayType.TAKE)
         {
-            this.gameObject.GetComponent<BoxCollider>().enabled = true;
+            EnableCollider();
             Manager.Instance.TogglePopUp(true, true);
             CloseWindow();
             return;
@@ -369,7 +385,7 @@ public class PopupObjectMenu : MonoBehaviour
             Manager.Instance.timeline.AddAction(take, this.gameObject);
             manager.itemsEver.Add(_take);
         }
-        this.gameObject.GetComponent<BoxCollider>().enabled = true;
+        EnableCollider();
         Manager.Instance.TogglePopUp(true, true);
         CloseWindow();
     }
@@ -384,7 +400,7 @@ public class PopupObjectMenu : MonoBehaviour
         Camera.main.GetComponent<CameraManager>().overlay = true;
         Camera.main.GetComponent<CameraManager>().overlay_type = overlayType.PUT;
 
-        this.gameObject.GetComponent<BoxCollider>().enabled = false;
+        DisableCollider();
         CloseWindow();
     }
 
@@ -392,7 +408,7 @@ public class PopupObjectMenu : MonoBehaviour
     {
         if (Camera.main.GetComponent<CameraManager>().overlay_type != overlayType.PUT)
         {
-            this.gameObject.GetComponent<BoxCollider>().enabled = true;
+            EnableCollider();
             Manager.Instance.TogglePopUp(true, true);
             CloseWindow();
             return;
@@ -408,7 +424,7 @@ public class PopupObjectMenu : MonoBehaviour
                 this.transform.eulerAngles, endEuler);
         Manager.Instance.timeline.AddAction(put, this.gameObject);
         manager.itemsEver.Remove(manager.itemsEver[0]);
-        this.gameObject.GetComponent<BoxCollider>().enabled = true;
+        EnableCollider();
         Manager.Instance.TogglePopUp(true, true);
         CloseWindow();
     }

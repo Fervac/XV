@@ -13,6 +13,9 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 	public GameObject prefab;
 	private GameObject ghostObject;
 
+	public bool posModifier = true;
+	public bool addCollider = true;
+
 	private void Awake()
     {
 		canvasGroup = GetComponent<CanvasGroup>();
@@ -67,21 +70,28 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 		}
 
 		// The following code is to center and corretly place the ghost object
-		GameObject parent = new GameObject("ModelParts");
-		List<Transform> children = new List<Transform>();
+		if (posModifier)
+		{
+			GameObject parent = new GameObject("ModelParts");
+			List<Transform> children = new List<Transform>();
 
-		parent.transform.SetParent(ghostObject.transform);
-		parent.transform.localPosition = new Vector3(0, 0, 0);
-		foreach (Transform child in ghostObject.transform)
-			children.Add(child);
-		foreach (Transform child in children)
-			child.SetParent(parent.transform);
-		children.Clear();
+			parent.transform.SetParent(ghostObject.transform);
+			parent.transform.localPosition = new Vector3(0, 0, 0);
+			foreach (Transform child in ghostObject.transform)
+				children.Add(child);
+			foreach (Transform child in children)
+				child.SetParent(parent.transform);
+			children.Clear();
 
-		ghostObject.transform.GetChild(0).localEulerAngles = new Vector3(0, 90, 0);
-		//ghostObject.transform.eulerAngles = new Vector3(0, 90, 0);
-		Bounds bounds = CalculateLocalBounds(ghostObject);
-		ghostObject.transform.GetChild(0).localPosition = new Vector3(bounds.extents.x, ghostObject.transform.GetChild(0).localPosition.y, ghostObject.transform.GetChild(0).localPosition.z);
+			ghostObject.transform.GetChild(0).localEulerAngles = new Vector3(0, 90, 0);
+			//ghostObject.transform.eulerAngles = new Vector3(0, 90, 0);
+			Bounds bounds = CalculateLocalBounds(ghostObject);
+			ghostObject.transform.GetChild(0).localPosition = new Vector3(bounds.extents.x, ghostObject.transform.GetChild(0).localPosition.y, ghostObject.transform.GetChild(0).localPosition.z);
+		}
+		if (!addCollider && ghostObject.GetComponent<CharacterController>())
+		{
+			ghostObject.GetComponent<CharacterController>().enabled = false;
+		}
 	}
 
     private void Update()
@@ -131,7 +141,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 		if (!EventSystem.current.IsPointerOverGameObject())
 		{
 			if (Manager.Instance != null)
-				Manager.Instance.SpawnPrefab(prefab, rot, eulers);
+				Manager.Instance.SpawnPrefab(prefab, rot, eulers, posModifier, addCollider);
 
 			//Manager.Instance.SpawnPrefab(prefab, ghostObject.transform);
 		}

@@ -58,6 +58,7 @@ public class CameraManager : MonoBehaviour
 
     private void Overview()
     {
+        //MouseOverlayTest();
         // Should only work in Overview mode
         if (overlay && _operator)
             MouseOverlay();
@@ -239,7 +240,10 @@ public class CameraManager : MonoBehaviour
             {
                 overlay = false;
                 Manager.Instance.TogglePopUp(true, true);
-                _operator.GetComponent<BoxCollider>().enabled = true;
+                if (_operator.GetComponent<BoxCollider>())
+                    _operator.GetComponent<BoxCollider>().enabled = true;
+                if (_operator.GetComponent<CharacterController>())
+                    _operator.GetComponent<CharacterController>().enabled = true;
                 _operator = null;
                 valid = false;
                 overlayTimer = 0.0f;
@@ -272,6 +276,17 @@ public class CameraManager : MonoBehaviour
             overlayTimerModifier = 1;
         else if (overlayTimer > 0.5f)
             overlayTimerModifier = -1;
+    }
+    private void MouseOverlayTest()
+    {
+        Ray ray;
+        RaycastHit hit;
+
+        ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out hit, 100.0f))
+        {
+            print(hit.collider);
+        }
     }
 
     private Vector3 RotatePointAroundPivot(Vector3 point, Vector3 pivot, Vector3 angles)

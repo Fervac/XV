@@ -123,6 +123,8 @@ public class Manager : MonoBehaviour
 
     public void DeleteFromLoadedList(GameObject obj)
     {
+        if (characters.Contains(obj))
+            DeleteCharacter(obj);
         if (loadedObjects.Contains(obj))
             loadedObjects.Remove(obj);
     }
@@ -161,7 +163,7 @@ public class Manager : MonoBehaviour
             _object.name = updatedName;
     }
 
-    public void SpawnPrefab(GameObject prefab, Quaternion _rot, Vector3 _eulers)
+    public void SpawnPrefab(GameObject prefab, Quaternion _rot, Vector3 _eulers, bool posModifier = true, bool addCollider = true)
     {
         Ray ray;
         RaycastHit hit;
@@ -172,10 +174,14 @@ public class Manager : MonoBehaviour
             {
                 GameObject tmp = Instantiate(prefab, hit.point, _rot);
                 UpdateName(tmp);
-                SetBoxCollider(tmp);
+                if (addCollider)
+                    SetBoxCollider(tmp);
+                else
+                    characters.Add(tmp);
 
                 tmp.AddComponent<PopupObjectMenu>();
                 tmp.AddComponent<ModelManager>();
+                tmp.GetComponent<ModelManager>().posModifier = posModifier;
                 tmp.GetComponent<ModelManager>().prefabIdentifier = prefab.name;
                 tmp.AddComponent<DragObject>();
 
@@ -317,7 +323,7 @@ public class Manager : MonoBehaviour
             }
 
             // Spawn object from prefab
-            SpawnPrefab(model, Quaternion.identity, new Vector3(0, 0, 0));
+            SpawnPrefab(model, Quaternion.identity, new Vector3(0, 0, 0), !(obj.prefabName == "UsableCharacter"), !(obj.prefabName == "UsableCharacter"));
             spawned = loadedObjects[loadedObjects.Count - 1];
             instances.Add(obj.instanceId, spawned);
 
