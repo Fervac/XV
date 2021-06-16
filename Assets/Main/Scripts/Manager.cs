@@ -356,6 +356,9 @@ public class Manager : MonoBehaviour
         Action act = null;
         GameObject _op = null, _target = null;
 
+        if (instances == null || instances.Count <= 0)
+            return;
+
         foreach (Action action in actions)
         {
             act = new Action(action);

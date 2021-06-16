@@ -213,6 +213,7 @@ public class ModelManager : MonoBehaviour
         current = action;
         if (action == null || CompleteAction(action))
             return;
+
         switch (action.type)
         {
             case actionType.MOVE:

@@ -34,7 +34,6 @@ public class DragObject : MonoBehaviour
 
 			if (Input.GetMouseButtonUp(1))
 			{
-				// Update init_pos & init_rot of ModelManager ? And then all actions using this object ?
 				_drag = false;
 				if (Manager.Instance.GetTimeCursor() == 0.0f)/* || Manager.Instance.GetTimeCursor() <= )*/
                 {
@@ -42,8 +41,10 @@ public class DragObject : MonoBehaviour
 					manager.init_rot = this.transform.eulerAngles;
 
 					// Then update first action of the actor
-					// 1 - Get Actor
-					// 2 - Actor.UpdateActions()
+					//	1 -	Get Actor																						- DONE
+					//	2 -	Actor.UpdateActions() -> Will update actions of the actor										- DONE
+					//	3 -	We also need to update position in actions from other actor is object_target is our actor.		- WIP
+					//		The problem is how to update object_target position ?
 					ActionActor actor = Manager.Instance.timeline.GetActorFromName(this.gameObject.name);
 					if (actor != null)
 					{

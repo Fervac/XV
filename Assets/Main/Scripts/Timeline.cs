@@ -277,50 +277,45 @@ public class ActionActor
         this.actions.Sort(Action.SortByStartTime);
     }
 
-    public void UpdateAction(Action action)
-    {
-        int index = actions.FindIndex(x => x == action);
-        Debug.Log(index);
-        if (index != -1)
-        {
-            Debug.Log(action.start + " -> " + action.end);
-            Debug.Log(actions[index].start + " -> " + actions[index].end);
-        }
-    }
-
     public void ResetTransform()
     {
         this.object_operator.transform.position = position;
         this.object_operator.transform.eulerAngles = rotation;
     }
 
-    public void UpdateActions()
+    public void UpdateActions(bool updateOther = true)
     {
         int i = -1;
 
-        /*if (actions.Count >= 1) // Why ? Not sure if we need to keep it
-        {
-            this.object_operator.transform.position = position;//actions[0].start_pos;
-            this.object_operator.transform.eulerAngles = rotation;
-        }*/
 
-        foreach (Action act in actions) // Update to check for all actions in which the target or operator is the current actor
+        Vector3 pos, rot;
+
+        foreach (Action act in actions)
         {
+            Manager.Instance.timeline.GetActionStartPosPub(act, this, out pos, out rot);
             if (act == actions[0])
             {
-                act.UpdateTransform(position, rotation);
-                Manager.Instance.timeline.GetTargetPosition(act, this);
+                act.UpdateTransform(pos, rot);
+                if (act.object_target != null)
+                    Manager.Instance.timeline.GetTargetPosition(act, this);
                 continue;
             }
             ++i;
-            //Manager.Instance.timeline.PlayUntil(act.end); Not useful as it's not modifying the time cursor which is used in model manager ;(
-            //Debug.Log(actions[i].type + " : " + actions[i].end_pos);
-            act.UpdateTransform(actions[i].end_pos, actions[i].end_forward);
-            Manager.Instance.timeline.GetTargetPosition(act, this);
+
+            act.UpdateTransform(pos, rot);
+            if (act.object_target != null)
+                Manager.Instance.timeline.GetTargetPosition(act, this);
+        }
+        if (updateOther)
+        {
+
+            List<ActionActor> otherActors = Manager.Instance.timeline.GetActorThatInteractWith(this);
+            foreach (ActionActor act in otherActors)
+                act.UpdateActions(false);
         }
     }
 
-    /*public bool isObjectTargeted(GameObject target)
+    public bool actorInteractWith(GameObject target)
     {
         if (actionCount < 1)
             return false;
@@ -330,7 +325,7 @@ public class ActionActor
                 return true;
         }
         return false;
-    }*/
+    }
 }
 
 #endregion
@@ -339,7 +334,7 @@ public class Timeline : MonoBehaviour
 {
     public float duration = 30f;
 
-    public List<Action> actions;        // All actions present in the timeline will be listed here // For what reason ?
+    public List<Action> actions;
     public List<ActionActor> objects;
 
     private List<GameObject> objects_event;
@@ -411,32 +406,21 @@ public class Timeline : MonoBehaviour
     private Vector3 GetActionStartPos(Action action, ActionActor actor)
     {
         Vector3 startpos = actor.object_operator.transform.position;
-        float firstTimePos = action.start;
-        float endTimePos = firstTimePos + action.duration;
+        float timeWall = 0.0f;
         Vector3 endForward = action.start_forward;
-
-        actionType test = 0;
 
         foreach (Action act in actions)
         {
             if (act.object_operator != action.object_operator && act.object_target != action.object_operator)
                 continue;
-            if ((act.start == firstTimePos
-                || (act.start > firstTimePos && act.start < endTimePos)
-                || (act.start < firstTimePos && act.end > firstTimePos)))
+            if (act.end <= action.start && act.end >= timeWall)
             {
-                firstTimePos = act.end;
-                endTimePos = firstTimePos + action.duration;
+                timeWall = act.end;
                 startpos = act.end_pos;
                 endForward = act.end_forward;
-                test = act.type;
-                //print(action.type + " | " + act.type);
             }
         }
-        /*print(firstTimePos);
-        print(startpos + " -> " + action.end_pos + " vs " + actor.position);
-        print(action.start_pos);*/
-        if (firstTimePos == 0.0f)
+        if (timeWall == 0.0f)
         {
             action.start_pos = actor.position;
             action.start_forward = actor.rotation;
@@ -446,12 +430,35 @@ public class Timeline : MonoBehaviour
         return startpos;
     }
 
+    public void GetActionStartPosPub(Action action, ActionActor actor, out Vector3 pos, out Vector3 rot)
+    {
+        Vector3 startpos = actor.object_operator.transform.position;
+        if (actor.actions.Count > 0 && action == actor.actions[0])
+            startpos = actor.position;
+        float timeWall = 0.0f;
+        Vector3 endForward = action.start_forward;
+
+        foreach (Action act in actions)
+        {
+            if (act.object_operator != action.object_operator && act.object_target != action.object_operator)
+                continue;
+            if (act.end <= action.start && act.end >= timeWall)
+            {
+                timeWall = act.end;
+                startpos = act.end_pos;
+                endForward = act.end_forward;
+            }
+        }
+        pos = startpos;
+        rot = endForward;
+    }
+
     /*
      * This functions is used to get the updated position of the target object for TAKE/USE actions
      */
     public void GetTargetPosition(Action action, ActionActor actor)
     {
-        if (action.type != actionType.TAKE /*&& action.type != actionType.PUT*/ && action.type != actionType.USE)
+        if (action.type != actionType.TAKE && action.type != actionType.USE)
             return;
         if (action.type == actionType.USE && action.umount)
             return;
@@ -503,7 +510,6 @@ public class Timeline : MonoBehaviour
 
             new_event.GetComponent<TimelineEvent>().parent = this;
             new_event.GetComponent<TimelineEvent>().SetActor(objects[objects.Count - 1], objects.Count % 2 == 0);
-            //new_event.GetComponent<TimelineEvent>().AddEvent(action);
         }
 
         i = objects.FindIndex(x => x.object_operator == object_operator);
@@ -519,26 +525,32 @@ public class Timeline : MonoBehaviour
         }
         else
         {
-            // Check where we can place the new action
+            // Check where we can place the new action based on the time and action length
             float startTime = GetActionStart(action, objects[i]);
             if (startTime >= duration || startTime + action.duration > duration)
             {   
                 print("Error, timeline is full");
                 return;
             }
-            //if (action.type == actionType.MOVE) // TODO : Modify, each actionType will need to have pos and rot
             /*
-             * If action.type == actionType.TAKE, we should check if there is ANY action with the target object.
-             * If there is, check is time is compatible, one object cannot be taken twice in the same time frame (and without being put on the ground).
-             * And also update end_pos / start_pos of the action based on the target.
+             * Update start and end time pos.
+             * Then based on that start time pos, update the start_pos (3d position in the world)
+             * And if the action is take or use, we might want to update the action end_pos based on the position of the target
              */
-            action.start_pos = GetActionStartPos(action, objects[i]);
             action.start = startTime;
             action.end = startTime + action.duration;
-            GetTargetPosition(action, objects[i]);
+            action.start_pos = GetActionStartPos(action, objects[i]);
+            if (action.object_target != null)
+                GetTargetPosition(action, objects[i]);
         }
 
-        // Add action to the timeline
+        /*
+         * Add the action to the timeline.
+         * Add actions to the actor.
+         * Sort the actions of the actor (sort based on start time)
+         * Update all actions of the actor (and the ones it interact with)
+         * Add visual button for the event
+         */
         actions.Add(action);
         objects[i].AddAction(action);
         objects[i].SortActions();
@@ -546,6 +558,7 @@ public class Timeline : MonoBehaviour
         objects_event[i].GetComponent<TimelineEvent>().AddEvent(action);
     }
 
+    #region Delete functions
     /*
      * This function is used to delete an action present in the timeline.
      * Deleting the action should remove it from the timeline and,
@@ -604,6 +617,21 @@ public class Timeline : MonoBehaviour
             toDeleteLine[k].DeleteEvent(null, toDelete[k]);
     }
 
+    public void DeleteActor(GameObject actor)
+    {
+        if (!actor)
+            return;
+        List<Action> toDelete = new List<Action>();
+        List<TimelineEvent> toDeleteLine = new List<TimelineEvent>();
+
+        int i = objects.FindIndex(x => x.object_operator == actor);
+        DeleteLinkedActions(actor);
+        if (i != -1)
+            DeleteActor(actor);
+    }
+
+    #endregion
+
     public void UpdateActorName(string actorName, string name)
     {
         int index = objects.FindIndex(x => x.object_operator.name == actorName);
@@ -620,17 +648,19 @@ public class Timeline : MonoBehaviour
         return objects[index];
     }
 
-    public void DeleteActor(GameObject actor)
+    public List<ActionActor> GetActorThatInteractWith(ActionActor target)
     {
-        if (!actor)
-            return;
-        List<Action> toDelete = new List<Action>();
-        List<TimelineEvent> toDeleteLine = new List<TimelineEvent>();
+        List<ActionActor> list = new List<ActionActor>();
 
-        int i = objects.FindIndex(x => x.object_operator == actor);
-        DeleteLinkedActions(actor);
-        if (i != -1)
-            DeleteActor(actor);
+        foreach (ActionActor actor in objects)
+        {
+            if (actor == target)
+                continue;
+            if (actor.actorInteractWith(target.object_operator) && !(list.Contains(actor)))
+                list.Add(actor);
+        }
+
+        return list;
     }
 
     /*
