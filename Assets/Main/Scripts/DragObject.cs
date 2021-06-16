@@ -52,6 +52,12 @@ public class DragObject : MonoBehaviour
 						actor.rotation = manager.init_rot;
 						actor.UpdateActions();
 					}
+					else
+                    {
+						List<ActionActor> tormentor = Manager.Instance.timeline.GetActorThatInteractWith(this.gameObject);
+						foreach(ActionActor meanActor in tormentor)
+							meanActor.UpdateActions();
+                    }
                 }
 			}
 		}

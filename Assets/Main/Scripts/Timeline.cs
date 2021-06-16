@@ -308,7 +308,6 @@ public class ActionActor
         }
         if (updateOther)
         {
-
             List<ActionActor> otherActors = Manager.Instance.timeline.GetActorThatInteractWith(this);
             foreach (ActionActor act in otherActors)
                 act.UpdateActions(false);
@@ -467,6 +466,8 @@ public class Timeline : MonoBehaviour
         float timePos = 0.0f;
         GameObject target = action.object_target;
         Vector3 npos = action.end_pos;
+        if (npos != target.transform.position)
+            npos = target.transform.position;
         if (!target)
             return;
         foreach (Action act in actions) // Can be expensive if there is a lot of actions in the timeline (but won't impact performence at our level)
@@ -657,6 +658,22 @@ public class Timeline : MonoBehaviour
             if (actor == target)
                 continue;
             if (actor.actorInteractWith(target.object_operator) && !(list.Contains(actor)))
+                list.Add(actor);
+        }
+
+        return list;
+    }
+    public List<ActionActor> GetActorThatInteractWith(GameObject targetObj)
+    {
+        int index = Manager.Instance.loadedObjects.IndexOf(targetObj);
+        if (index == -1)
+            return null;
+        GameObject target = Manager.Instance.loadedObjects[index];
+        List<ActionActor> list = new List<ActionActor>();
+
+        foreach (ActionActor actor in objects)
+        {
+            if (actor.actorInteractWith(target) && !(list.Contains(actor)))
                 list.Add(actor);
         }
 

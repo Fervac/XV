@@ -163,15 +163,16 @@ public class Manager : MonoBehaviour
             _object.name = updatedName;
     }
 
-    public void SpawnPrefab(GameObject prefab, Quaternion _rot, Vector3 _eulers, bool posModifier = true, bool addCollider = true)
+    public void SpawnPrefab(GameObject prefab, Quaternion _rot, Vector3 _eulers, bool posModifier = true, bool addCollider = true, bool _override = false)
     {
         Ray ray;
         RaycastHit hit;
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out hit, 100.0f))
+        if (Physics.Raycast(ray, out hit, 100.0f) || _override)
         {
-            if (hit.collider.CompareTag("Floor"))
+            if (hit.collider.CompareTag("Floor") || _override)
             {
+                print("hi");
                 GameObject tmp = Instantiate(prefab, hit.point, _rot);
                 UpdateName(tmp);
                 if (addCollider)
@@ -323,7 +324,7 @@ public class Manager : MonoBehaviour
             }
 
             // Spawn object from prefab
-            SpawnPrefab(model, Quaternion.identity, new Vector3(0, 0, 0), !(obj.prefabName == "UsableCharacter"), !(obj.prefabName == "UsableCharacter"));
+            SpawnPrefab(model, Quaternion.identity, new Vector3(0, 0, 0), !(obj.prefabName == "UsableCharacter"), !(obj.prefabName == "UsableCharacter"), true);
             spawned = loadedObjects[loadedObjects.Count - 1];
             instances.Add(obj.instanceId, spawned);
 
