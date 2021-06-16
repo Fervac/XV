@@ -176,7 +176,7 @@ public class PopupObjectMenu : MonoBehaviour
             return;
         nameTag = nameField.text;
         // We should update the timeline line (when modifying the gameobject name)
-        //Manager.Instance.UpdateActor(manager.);
+        Manager.Instance.timeline.UpdateActorName(this.gameObject.name, nameTag);
     }
 
     private void OnMouseDown()

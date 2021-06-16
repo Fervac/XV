@@ -33,7 +33,7 @@ public class TimelineEvent : MonoBehaviour
     public void SetActor(ActionActor _actor, bool odd = false)
     {
         this.actor = _actor;
-        actorName.text = actor.object_operator.name;
+        actorName.text = actor.object_operator.GetComponent<PopupObjectMenu>().PubNameTag;
         this.odd = odd;
         timelineObject.GetComponent<Image>().color = odd ? OddColor : EvenColor;
     }

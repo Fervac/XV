@@ -7,7 +7,15 @@ public class DragObject : MonoBehaviour
 {
 	private bool _drag;
 	private float speed = 7f;
-	private void Update()
+
+	ModelManager manager;
+
+    private void Start()
+    {
+		manager = this.GetComponent<ModelManager>();
+    }
+
+    private void Update()
 	{
 		if (_drag)
 		{
@@ -28,13 +36,29 @@ public class DragObject : MonoBehaviour
 			{
 				// Update init_pos & init_rot of ModelManager ? And then all actions using this object ?
 				_drag = false;
+				if (Manager.Instance.GetTimeCursor() == 0.0f)/* || Manager.Instance.GetTimeCursor() <= )*/
+                {
+					manager.init_pos = this.transform.position;
+					manager.init_rot = this.transform.eulerAngles;
+
+					// Then update first action of the actor
+					// 1 - Get Actor
+					// 2 - Actor.UpdateActions()
+					ActionActor actor = Manager.Instance.timeline.GetActorFromName(this.gameObject.name);
+					if (actor != null)
+					{
+						actor.position = manager.init_pos;
+						actor.rotation = manager.init_rot;
+						actor.UpdateActions();
+					}
+                }
 			}
 		}
 	}
 
     private void OnMouseOver()
     {
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1) && !(Manager.Instance.IsPlaying()))
         {
 			_drag = true;
         }

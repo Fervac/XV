@@ -604,6 +604,22 @@ public class Timeline : MonoBehaviour
             toDeleteLine[k].DeleteEvent(null, toDelete[k]);
     }
 
+    public void UpdateActorName(string actorName, string name)
+    {
+        int index = objects.FindIndex(x => x.object_operator.name == actorName);
+        if (index == -1)
+            return;
+        objects_event[index].GetComponent<TimelineEvent>().actorName.text = name;
+    }
+
+    public ActionActor GetActorFromName(string name)
+    {
+        int index = objects.FindIndex(x => x.object_operator.name == name);
+        if (index == -1)
+            return null;
+        return objects[index];
+    }
+
     public void DeleteActor(GameObject actor)
     {
         if (!actor)
