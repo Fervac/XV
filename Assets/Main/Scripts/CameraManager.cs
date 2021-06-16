@@ -122,6 +122,11 @@ public class CameraManager : MonoBehaviour
         cameraMode oldMode = camMode;
         bool modeChanged = false;
 
+        if ((oldMode == cameraMode.FreeOverview || oldMode == cameraMode.FreeFirstPerson) && Input.GetKeyDown(KeyCode.Escape))
+        {
+            camMode = oldMode == cameraMode.FreeOverview ? cameraMode.Overview : cameraMode.FirstPerson;
+            modeChanged = true;
+        }
         if (Input.GetKeyDown(KeyCode.Keypad0))
         {
             camMode = cameraMode.Overview;
@@ -217,6 +222,100 @@ public class CameraManager : MonoBehaviour
 
             Manager.Instance.timeline.UpdateCursor((cursor + 0.05f * mod) / Manager.Instance.GetDuration());
         }
+    }
+
+    public void ChangeView(int view)
+    {
+        cameraMode oldMode = camMode;
+        bool modeChanged = false;
+
+        if (view == 0)
+        {
+            camMode = cameraMode.Overview;
+            modeChanged = true;
+        }
+        if (view == 1)
+        {
+            camMode = cameraMode.FreeOverview;
+            modeChanged = true;
+        }
+        if (view == 2 && Manager.Instance.characters.Count > 0)
+        {
+            camMode = cameraMode.FirstPerson;
+            modeChanged = true;
+        }
+        if (view == 3 && Manager.Instance.characters.Count > 0)
+        {
+            camMode = cameraMode.FreeFirstPerson;
+            modeChanged = true;
+        }
+
+        /*
+         * Not all cases are interesting.
+         * We won't care about the change between Overview and FreeOverview which use the same camera.
+         * We will only care about first person change (FP and FFP) and FP/FFP to Overview.
+         */
+        if (modeChanged)
+        {
+            if (oldMode <= cameraMode.FreeOverview && camMode >= cameraMode.FirstPerson)
+            {
+                // Select first person cam.
+                // Disable main cam et enable sub cam
+                GameObject character = Manager.Instance.GetNextFirstPerson();
+                if (character)
+                {
+                    Camera cam = character.GetComponent<CharacterManager>().cam.GetComponent<Camera>();
+                    cam.enabled = true;
+                    Camera.main.enabled = false;
+                    character.GetComponent<CharacterManager>().TogglePlayer();
+                }
+            }
+            else if (oldMode > cameraMode.FreeOverview && camMode >= cameraMode.FirstPerson)
+            {
+                if (oldMode == camMode)
+                {
+                    // Select new sub camera is available (meaning more than one character present)
+                    GameObject character = Manager.Instance.GetCurrentFirstPerson();
+                    GameObject nextCharacter = Manager.Instance.GetNextFirstPerson();
+                    if (character && nextCharacter && character != nextCharacter)
+                    {
+                        Camera cam = character.GetComponent<CharacterManager>().cam.GetComponent<Camera>();
+                        cam.enabled = false;
+                        character.GetComponent<CharacterManager>().TogglePlayer();
+                        cam = nextCharacter.GetComponent<CharacterManager>().cam.GetComponent<Camera>();
+                        cam.enabled = true;
+                        nextCharacter.GetComponent<CharacterManager>().TogglePlayer();
+                    }
+                }
+                // The other case is a simple update which tell the characterManager if the player can control the character and not simply being in the player 
+            }
+            else if (oldMode > cameraMode.FreeOverview && camMode <= cameraMode.FreeOverview)
+            {
+                // Enable main cam and disable sub cam
+                GameObject character = Manager.Instance.GetCurrentFirstPerson();
+                if (character)
+                {
+                    Camera cam = character.GetComponent<CharacterManager>().cam.GetComponent<Camera>();
+                    cam.enabled = false;
+                    character.GetComponent<CharacterManager>().TogglePlayer();
+                }
+                Manager.Instance.camKaren.GetComponent<Camera>().enabled = true;
+            }
+        }
+
+
+        // Hide cursor when camera mode is not overview.
+        if (camMode == cameraMode.Overview)
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
+        else
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+        EventSystem.current.SetSelectedGameObject(null);
     }
     private void MouseOverlay()
     {
