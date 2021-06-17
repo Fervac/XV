@@ -172,7 +172,6 @@ public class Manager : MonoBehaviour
         {
             if (hit.collider.CompareTag("Floor") || _override)
             {
-                print("hi");
                 GameObject tmp = Instantiate(prefab, hit.point, _rot);
                 UpdateName(tmp);
                 if (addCollider)
