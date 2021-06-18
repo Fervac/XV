@@ -29,6 +29,28 @@ public class ObjFromFileTest : MonoBehaviour
 
     private ObjectImporter objImporter;
 
+    [System.Obsolete]
+    private void Awake()
+    {
+        if (!Directory.Exists(Application.persistentDataPath + "/UserImports/"))
+        {
+            Directory.CreateDirectory(Application.persistentDataPath + "/UserImports/");
+        }
+
+        var info = new DirectoryInfo(Application.persistentDataPath + "/UserImports/");
+        var fileInfo = info.GetFiles();
+
+        foreach (FileInfo file in fileInfo)
+        {
+            objPath = file.FullName;
+
+            Debug.Log(objPath);
+
+            if (file.Extension == ".obj")
+                LoadObject();
+        }
+    }
+
     public void OpenExplorer()
     {
         objPath = string.Empty;
