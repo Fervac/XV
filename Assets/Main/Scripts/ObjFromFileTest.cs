@@ -29,28 +29,6 @@ public class ObjFromFileTest : MonoBehaviour
 
     private ObjectImporter objImporter;
 
-    [System.Obsolete]
-    private void Awake()
-    {
-        if (!Directory.Exists(Application.persistentDataPath + "/UserImports/"))
-        {
-            Directory.CreateDirectory(Application.persistentDataPath + "/UserImports/");
-        }
-
-        var info = new DirectoryInfo(Application.persistentDataPath + "/UserImports/");
-        var fileInfo = info.GetFiles();
-
-        foreach (FileInfo file in fileInfo)
-        {
-            objPath = file.FullName;
-
-            Debug.Log(objPath);
-
-            if (file.Extension == ".obj")
-                LoadObject();
-        }
-    }
-
     public void OpenExplorer()
     {
         objPath = string.Empty;
@@ -105,25 +83,20 @@ public class ObjFromFileTest : MonoBehaviour
         else
         {
             if (!File.Exists(Application.persistentDataPath + "/UserImports/" + (FileBrowserHelpers.GetFilename(objPath))))
-            {
                 File.Copy(objPath, Path.Combine(Application.persistentDataPath + "/UserImports/", FileBrowserHelpers.GetFilename(objPath)));
-            }
 
             loadedObject = new GameObject();
             loadedObject.transform.SetParent(GameObject.Find("Env/ImportedSecretStash").transform);
             objImporter = loadedObject.GetComponent<ObjectImporter>();
             if (objImporter == null)
-            {
                 objImporter = loadedObject.AddComponent<ObjectImporter>();
-            }
 
             importOptions.zUp = false;
-            string _name = FileBrowserHelpers.GetFilename(objPath);
-            objImporter.ImportModelAsync(_name, objPath, loadedObject.transform, importOptions);
+            objectName = FileBrowserHelpers.GetFilename(objPath);
+            objImporter.ImportModelAsync(objectName, objPath, loadedObject.transform, importOptions);
 
-            //loadedObject = new OBJLoader().Load(objPath);
 
-            loadedObject.name = _name;
+            loadedObject.name = objectName;
             GameObject tmp = Manager.Instance.AddToImportedList(loadedObject); // loadedObject list Not good good
 
             AddToScrollview(tmp);
