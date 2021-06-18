@@ -29,6 +29,27 @@ public class ObjFromFileTest : MonoBehaviour
 
     private ObjectImporter objImporter;
 
+    [System.Obsolete]
+    private void Awake()
+    {
+        if (!Directory.Exists(Application.persistentDataPath + "/UserImports/"))
+        {
+            Directory.CreateDirectory(Application.persistentDataPath + "/UserImports/");
+        }
+
+        var info = new DirectoryInfo(Application.persistentDataPath + "/UserImports/");
+        var fileInfo = info.GetFiles();
+
+        foreach (FileInfo file in fileInfo)
+        {
+            objPath = file.FullName;
+
+            Debug.Log(objPath);
+
+            LoadObject();
+        }
+    }
+
     public void OpenExplorer()
     {
         objPath = string.Empty;
@@ -82,6 +103,11 @@ public class ObjFromFileTest : MonoBehaviour
         }
         else
         {
+            if (!File.Exists(Application.persistentDataPath + "/UserImports/" + (FileBrowserHelpers.GetFilename(objPath))))
+            {
+                File.WriteAllText(Path.Combine(Application.persistentDataPath + "/UserImports/", FileBrowserHelpers.GetFilename(objPath)), objPath);
+            }
+
             loadedObject = new GameObject();
             objImporter = loadedObject.GetComponent<ObjectImporter>();
             if (objImporter == null)
