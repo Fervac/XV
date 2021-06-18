@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -56,10 +57,36 @@ public class Manager : MonoBehaviour
     public int charIndex = 0;
 
     public CameraManager camKaren;
+
+    string objPath = string.Empty;
+    public GameObject import;
+
+    [System.Obsolete]
     private void Start()
     {
         loadedObjects = new List<GameObject>();
         characters = new List<GameObject>();
+
+        if (!Directory.Exists(Application.persistentDataPath + "/UserImports/"))
+        {
+            Directory.CreateDirectory(Application.persistentDataPath + "/UserImports/");
+        }
+
+        var info = new DirectoryInfo(Application.persistentDataPath + "/UserImports/");
+        var fileInfo = info.GetFiles();
+
+        SwitchShowWindow(import);
+
+        foreach (FileInfo file in fileInfo)
+        {
+            objPath = file.FullName;
+
+            import.GetComponent<ObjFromFileTest>().objPath = objPath;
+
+            import.GetComponent<ObjFromFileTest>().LoadObject();
+        }
+
+        SwitchShowWindow(import);
     }
 
     #region CharacterViewManagement

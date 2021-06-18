@@ -10,7 +10,7 @@ using UnityEngine.EventSystems;
 
 public class ObjFromFileTest : MonoBehaviour
 {
-    string objPath = string.Empty;
+    public string objPath = string.Empty;
     string error = string.Empty;
     GameObject loadedObject;
 
@@ -28,27 +28,6 @@ public class ObjFromFileTest : MonoBehaviour
     private PathSettings pathSettings;
 
     private ObjectImporter objImporter;
-
-    [System.Obsolete]
-    private void Awake()
-    {
-        if (!Directory.Exists(Application.persistentDataPath + "/UserImports/"))
-        {
-            Directory.CreateDirectory(Application.persistentDataPath + "/UserImports/");
-        }
-
-        var info = new DirectoryInfo(Application.persistentDataPath + "/UserImports/");
-        var fileInfo = info.GetFiles();
-
-        foreach (FileInfo file in fileInfo)
-        {
-            objPath = file.FullName;
-
-            Debug.Log(objPath);
-
-            LoadObject();
-        }
-    }
 
     public void OpenExplorer()
     {
@@ -105,7 +84,7 @@ public class ObjFromFileTest : MonoBehaviour
         {
             if (!File.Exists(Application.persistentDataPath + "/UserImports/" + (FileBrowserHelpers.GetFilename(objPath))))
             {
-                File.WriteAllText(Path.Combine(Application.persistentDataPath + "/UserImports/", FileBrowserHelpers.GetFilename(objPath)), objPath);
+                File.Copy(objPath, Path.Combine(Application.persistentDataPath + "/UserImports/", FileBrowserHelpers.GetFilename(objPath)));
             }
 
             loadedObject = new GameObject();
