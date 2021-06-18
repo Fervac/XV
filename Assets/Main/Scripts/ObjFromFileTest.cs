@@ -29,6 +29,28 @@ public class ObjFromFileTest : MonoBehaviour
 
     private ObjectImporter objImporter;
 
+    [System.Obsolete]
+    private void Awake()
+    {
+        if (!Directory.Exists(Application.persistentDataPath + "/UserImports/"))
+        {
+            Directory.CreateDirectory(Application.persistentDataPath + "/UserImports/");
+        }
+
+        var info = new DirectoryInfo(Application.persistentDataPath + "/UserImports/");
+        var fileInfo = info.GetFiles();
+
+        foreach (FileInfo file in fileInfo)
+        {
+            objPath = file.FullName;
+
+            Debug.Log(objPath);
+
+            if (file.Extension == ".obj")
+                LoadObject();
+        }
+    }
+
     public void OpenExplorer()
     {
         objPath = string.Empty;
@@ -100,6 +122,7 @@ public class ObjFromFileTest : MonoBehaviour
 
             GameObject tmp = Manager.Instance.AddToLoadedList(loadedObject);
 
+            tmp.name = FileBrowserHelpers.GetFilename(objPath);
             AddToScrollview(tmp);
 
             error = string.Empty;
@@ -128,6 +151,9 @@ public class ObjFromFileTest : MonoBehaviour
         GameObject tmp = Instantiate(contentPrefab);
         tmp.transform.SetParent(content);
         tmp.GetComponent<DragHandler>().prefab = prefab;
+        tmp.GetComponent<DragHandler>().posModifier = false;
         tmp.GetComponent<Image>().sprite = notFound;
+
+        //prefab.transform.Translate(new Vector3(0, -1, 0)); // To change try using bounding box
     }
 }
