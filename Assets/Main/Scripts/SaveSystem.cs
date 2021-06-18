@@ -20,6 +20,7 @@ public class GameObjectSaveData
     public GameObjectSaveData(GameObject obj)
     {
         name = obj.name;
+
         prefabName = obj.GetComponent<ModelManager>().prefabIdentifier;
         instanceId = obj.GetInstanceID();
 

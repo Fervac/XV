@@ -88,17 +88,21 @@ public class ObjFromFileTest : MonoBehaviour
             }
 
             loadedObject = new GameObject();
+            loadedObject.transform.SetParent(GameObject.Find("Env/ImportedSecretStash").transform);
             objImporter = loadedObject.GetComponent<ObjectImporter>();
             if (objImporter == null)
             {
                 objImporter = loadedObject.AddComponent<ObjectImporter>();
             }
 
-            objImporter.ImportModelAsync(objectName, objPath, loadedObject.transform, importOptions);
+            importOptions.zUp = false;
+            string _name = FileBrowserHelpers.GetFilename(objPath);
+            objImporter.ImportModelAsync(_name, objPath, loadedObject.transform, importOptions);
 
             //loadedObject = new OBJLoader().Load(objPath);
 
-            GameObject tmp = Manager.Instance.AddToLoadedList(loadedObject);
+            loadedObject.name = _name;
+            GameObject tmp = Manager.Instance.AddToImportedList(loadedObject); // loadedObject list Not good good
 
             AddToScrollview(tmp);
 
@@ -125,9 +129,30 @@ public class ObjFromFileTest : MonoBehaviour
 
     public void AddToScrollview(GameObject prefab)
     {
+        /*if (content.Find(prefab.name + "-ImportedAsset") != null)
+        {
+            GameObject brother = content.Find(prefab.name + "-ImportedAsset").gameObject;
+            if (brother.GetComponent<DragHandler>() && brother.GetComponent<DragHandler>().prefab == prefab)
+            {
+
+            }
+            int i = 1;
+            string newName = prefab.name + "-ImportedAsset-" + i;
+            while (content.Find(newName) != null)
+            {
+                i++;
+                newName = prefab.name + "-ImportedAsset-" + i;
+            }
+        }
+        else
+        {*/
         GameObject tmp = Instantiate(contentPrefab);
         tmp.transform.SetParent(content);
         tmp.GetComponent<DragHandler>().prefab = prefab;
+        tmp.GetComponent<DragHandler>().posModifier = false;
         tmp.GetComponent<Image>().sprite = notFound;
+        
+        tmp.name = prefab.name + "-ImportedAsset";
+        //}
     }
 }

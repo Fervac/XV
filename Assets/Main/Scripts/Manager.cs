@@ -32,6 +32,7 @@ public class Manager : MonoBehaviour
     #endregion
 
     public List<GameObject> loadedObjects;
+    public List<GameObject> importedObjects;
 
     public GameObject AssetsListPanel;
 
@@ -65,6 +66,7 @@ public class Manager : MonoBehaviour
     private void Start()
     {
         loadedObjects = new List<GameObject>();
+        importedObjects = new List<GameObject>();
         characters = new List<GameObject>();
 
         if (!Directory.Exists(Application.persistentDataPath + "/UserImports/"))
@@ -83,7 +85,8 @@ public class Manager : MonoBehaviour
 
             import.GetComponent<ObjFromFileTest>().objPath = objPath;
 
-            import.GetComponent<ObjFromFileTest>().LoadObject();
+            if (file.Extension == ".obj")
+                import.GetComponent<ObjFromFileTest>().LoadObject();
         }
 
         SwitchShowWindow(import);
@@ -148,6 +151,20 @@ public class Manager : MonoBehaviour
 
     #region ObjectManagement
 
+    public void DeleteFromImportedList(GameObject obj)
+    {
+        if (loadedObjects.Contains(obj))
+            loadedObjects.Remove(obj);
+    }
+
+    public GameObject AddToImportedList(GameObject _object)
+    {
+        importedObjects.Add(_object);
+
+        GameObject tmp = importedObjects[importedObjects.Count - 1];
+
+        return tmp;
+    }
     public void DeleteFromLoadedList(GameObject obj)
     {
         if (characters.Contains(obj))
@@ -246,7 +263,7 @@ public class Manager : MonoBehaviour
         box.center = bounds.center;
         box.size = bounds.extents * 2;
         // Disable box collider before click is released
-        box.enabled = false;
+        //box.enabled = false;
     }
 
     public void TogglePopUp(bool force = false, bool state = false)
