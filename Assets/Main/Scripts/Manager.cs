@@ -296,6 +296,14 @@ public class Manager : MonoBehaviour
     {
         Application.OpenURL(RockVR.Video.PathConfig.SaveFolder);
     }
+    public void OpenImportFolder()
+    {
+        if (!Directory.Exists(Application.persistentDataPath + "/UserImports/"))
+        {
+            Directory.CreateDirectory(Application.persistentDataPath + "/UserImports/");
+        }
+        Application.OpenURL(Application.persistentDataPath + "/UserImports/");
+    }
 
     public List<GameObject> GetAssetsList()
     {
