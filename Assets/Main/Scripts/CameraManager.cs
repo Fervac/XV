@@ -38,12 +38,6 @@ public class CameraManager : MonoBehaviour
 
     private Vector3 lastMouse = new Vector3();
 
-    /*private Vector3 OverPos;
-    private Vector3 OverRot;
-
-    private Vector3 FirstPPos;
-    private Vector3 FirstPRot;*/
-
     public Camera firstPersonCamera;
 
     public float mouseSensitivity = 750f;
@@ -122,18 +116,10 @@ public class CameraManager : MonoBehaviour
         cameraMode oldMode = camMode;
         bool modeChanged = false;
 
-        /*if ((oldMode == cameraMode.FreeOverview || oldMode == cameraMode.FreeFirstPerson) && Input.GetKeyDown(KeyCode.Escape))
+         if (Input.GetKeyDown(KeyCode.Escape) && camMode != cameraMode.Overview)
         {
-            camMode = oldMode == cameraMode.FreeOverview ? cameraMode.Overview : cameraMode.FirstPerson;
-            modeChanged = true;
-        }
-        else*/ if (Input.GetKeyDown(KeyCode.Escape) && camMode != cameraMode.Overview)
-        {
-            print("hi");
             camMode = cameraMode.Overview;
-            //Cursor.lockState = CursorLockMode.None;
             modeChanged = true;
-            //Cursor.visible = true;
 
         }
         if (Input.GetKeyDown(KeyCode.Keypad0) || Input.GetKeyDown(KeyCode.Alpha1))
