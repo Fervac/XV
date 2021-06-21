@@ -122,27 +122,35 @@ public class CameraManager : MonoBehaviour
         cameraMode oldMode = camMode;
         bool modeChanged = false;
 
-        if ((oldMode == cameraMode.FreeOverview || oldMode == cameraMode.FreeFirstPerson) && Input.GetKeyDown(KeyCode.Escape))
+        /*if ((oldMode == cameraMode.FreeOverview || oldMode == cameraMode.FreeFirstPerson) && Input.GetKeyDown(KeyCode.Escape))
         {
             camMode = oldMode == cameraMode.FreeOverview ? cameraMode.Overview : cameraMode.FirstPerson;
             modeChanged = true;
         }
-        if (Input.GetKeyDown(KeyCode.Keypad0))
+        else*/ if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            camMode = cameraMode.Overview;
+            //Cursor.lockState = CursorLockMode.None;
+            modeChanged = true;
+            //Cursor.visible = true;
+
+        }
+        if (Input.GetKeyDown(KeyCode.Keypad0) || Input.GetKeyDown(KeyCode.Alpha1))
         {
             camMode = cameraMode.Overview;
             modeChanged = true;
         }
-        if (Input.GetKeyDown(KeyCode.Keypad1))
+        if (Input.GetKeyDown(KeyCode.Keypad1) || Input.GetKeyDown(KeyCode.Alpha2))
         {
             camMode = cameraMode.FreeOverview;
             modeChanged = true;
         }
-        if (Input.GetKeyDown(KeyCode.Keypad2) && Manager.Instance.characters.Count > 0)
+        if ((Input.GetKeyDown(KeyCode.Keypad2) || Input.GetKeyDown(KeyCode.Alpha3)) && Manager.Instance.characters.Count > 0)
         {
             camMode = cameraMode.FirstPerson;
             modeChanged = true;
         }
-        if (Input.GetKeyDown(KeyCode.Keypad3) && Manager.Instance.characters.Count > 0)
+        if ((Input.GetKeyDown(KeyCode.Keypad3) || Input.GetKeyDown(KeyCode.Alpha4)) && Manager.Instance.characters.Count > 0)
         {
             camMode = cameraMode.FreeFirstPerson;
             modeChanged = true;
