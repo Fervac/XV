@@ -305,7 +305,7 @@ public class Manager : MonoBehaviour
         Application.OpenURL(Application.persistentDataPath + "/UserImports/");
     }
 
-    public List<GameObject> GetAssetsList()
+    public List<GameObject> GetAssetsList(List<bool> posMod = null, List<bool> colliderMod = null)
     {
         List<GameObject> assets = new List<GameObject>();
 
@@ -319,7 +319,13 @@ public class Manager : MonoBehaviour
             }
 
             if (dh.prefab != null)
+            {
                 assets.Add(dh.prefab);
+                if (posMod != null)
+                    posMod.Add(dh.posModifier);
+                if (colliderMod != null)
+                    colliderMod.Add(dh.addCollider);
+            }
         }
 
         return assets;
@@ -352,9 +358,14 @@ public class Manager : MonoBehaviour
     public Dictionary<int, GameObject> LoadObjects(List<GameObjectSaveData> savedObjects)
     {
         // Get a list of the assets
-        List<GameObject> prefabList = GetAssetsList();
+        List<bool> posMod = new List<bool>();
+        List<bool> colliderMod = new List<bool>();
+        List<GameObject> prefabList = GetAssetsList(posMod, colliderMod);
         GameObject model = null, spawned = null;
         ModelManager modelManager = null;
+        bool modifyPos = true;
+        bool addCollider = true;
+        int i = 0;
 
         Dictionary<int, GameObject> instances = new Dictionary<int, GameObject>();
 
@@ -365,7 +376,12 @@ public class Manager : MonoBehaviour
         foreach (GameObjectSaveData obj in savedObjects)
         {
             // Find the corresponding prefab
-            model = prefabList.Find(x => x.name == obj.prefabName);
+            i = prefabList.FindIndex(x => x.name == obj.prefabName);
+            //model = prefabList.Find(x => x.name == obj.prefabName);
+            if (i == -1)
+                model = null;
+            else
+                model = prefabList[i];
 
             // Not found ? Then abort this pelicular object
             if (!model)
@@ -374,8 +390,17 @@ public class Manager : MonoBehaviour
                 continue;
             }
 
+            if (posMod.Count > i)
+                modifyPos = posMod[i];
+            else
+                modifyPos = true;
+            if (colliderMod.Count > i)
+                addCollider = colliderMod[i];
+            else
+                addCollider = true;
+
             // Spawn object from prefab
-            SpawnPrefab(model, Quaternion.identity, new Vector3(0, 0, 0), !(obj.prefabName == "UsableCharacter"), !(obj.prefabName == "UsableCharacter"), true);
+            SpawnPrefab(model, Quaternion.identity, new Vector3(0, 0, 0), modifyPos, addCollider, true);
             spawned = loadedObjects[loadedObjects.Count - 1];
             instances.Add(obj.instanceId, spawned);
 
