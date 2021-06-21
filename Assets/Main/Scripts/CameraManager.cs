@@ -127,8 +127,9 @@ public class CameraManager : MonoBehaviour
             camMode = oldMode == cameraMode.FreeOverview ? cameraMode.Overview : cameraMode.FirstPerson;
             modeChanged = true;
         }
-        else*/ if (Input.GetKeyDown(KeyCode.Escape))
+        else*/ if (Input.GetKeyDown(KeyCode.Escape) && camMode != cameraMode.Overview)
         {
+            print("hi");
             camMode = cameraMode.Overview;
             //Cursor.lockState = CursorLockMode.None;
             modeChanged = true;
