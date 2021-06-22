@@ -913,7 +913,11 @@ public class Timeline : MonoBehaviour
         if (isPlaying) // TODO : Maybe close all popup when playing
             Play(timeCursor == duration);
         if (Input.GetKeyDown(KeyCode.Space))
+        {
             isPlaying = !isPlaying;
+            if (isPlaying == false && isRecording)
+                StopRecording();
+        }
         if (Manager.Instance.camKaren.camMode != cameraMode.Overview)
         {
             if (Input.GetKeyDown(KeyCode.R))
